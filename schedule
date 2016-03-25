@@ -1,7 +1,41 @@
-Schedule of CIS550 Project3
+Schedule of CIS 505
+Project3
 Yilun Fu, Miao Cheng, Yi-ping Lin
-Week1:
-1. Read the spec of project3, make a plan of what to do next.
-2. Make a github private repository.
 
-Week2: 
+Schedule:
+Week1:(03/25)
+Read the spec of project3, make a plan of what to do next
+Make a github private repository
+
+Week2:(04/1)
+Data Structure Design
+Implement the basic functions I (Multicast & Ordered protocol.....etc)
+
+Week3:(04/8)
+Implement the basic functions II (Sequencer election…...etc)
+
+Week4:(04/15)
+Implement the basic functions III (Remaining Part)
+Extra Credit Part I
+
+Week5:(04/22)
+Extra Credit Part II
+
+Work Distribution:
+Yilun Fu: Multicast protocol and Message design
+
+Yi-ping Lin: Ordered protocol and Client design
+
+Miao Cheng: Sequencer election and Server design
+
+
+
+Detailed Design Specification:
+Shared Functions:
+Deserial Function
+Encoding & Decoding Function
+
+Package String Includes:
+Message (This is sent when client sends a message)
+Active Clients ids and their addresses & entering orders (for choosing the next leader, this is sent when a client joins a group) 
+Vector Time (for ordering usage, this is sent every time a client does something)
