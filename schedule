@@ -9,10 +9,10 @@ Make a github private repository
 
 Week2:(04/1)
 Data Structure Design
-Implement the basic functions I (Multicast & Ordered protocol.....etc)
+Implement the basic functions I (Multicast & Ordered protocol, etc.)
 
 Week3:(04/8)
-Implement the basic functions II (Sequencer election…...etc)
+Implement the basic functions II (Sequencer election, etc.)
 
 Week4:(04/15)
 Implement the basic functions III (Remaining Part)
@@ -27,8 +27,6 @@ Yilun Fu: Multicast protocol and Message design
 Yi-ping Lin: Ordered protocol and Client design
 
 Miao Cheng: Sequencer election and Server design
-
-
 
 Detailed Design Specification:
 Shared Functions:
