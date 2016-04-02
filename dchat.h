@@ -29,6 +29,9 @@ public:
 		int heartbeat_time = 5;
 		for (int i = 0; i < 100; i++)
 			group_ids[i] = 0;
+		all_members_list = map<string, string>();
+		group_members = map<int, set<string>>();
+		group_leaders = map<int, string>();
 	}
 	void start_new_group(string addr, string name);
 	void join_a_group(string add1, string add2, string name);
