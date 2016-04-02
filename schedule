@@ -33,7 +33,39 @@ Shared Functions:
 Deserial Function
 Encoding & Decoding Function
 
-Package String Includes:
+Message Types: String
+Data Structure of msg:
+Struct msg {
+   int clientID;
+   int entering_order;
+   int ip;
+   int port;
+   string message;
+}
+
+Every time a client wants to send a message, we’ll serialize the message struct to be a string by separating each item by “#” and 
+replace the original “#” with “/#”, “/” with “//”. And then when a client receives a message, we’ll deserialize it to the msg struct.
+
+Time when these information are used:
 Message (This is sent when client sends a message)
-Active Clients ids and their addresses & entering orders (for choosing the next leader, this is sent when a client joins a group) 
+Active Clients ids and their addresses & entering orders (for choosing the next leader, this is sent when a client joins a group)
 Vector Time (for ordering usage, this is sent every time a client does something)
+
+Protocol states: 
+We’re asked to use UDP as protocol. And as described in project description. UDP is very unreliable, so we decide to take one 
+client as the leader/sequencer of the group and keep monitoring the state of other clients at that time. 
+So each time if a client is crashed or inactive, the leader will detect it and eliminate it from the chat. 
+Also we need to consider the situation when the leader is crashed, Then we need to design an election algorithm for next leader, 
+here we want to pass the leader according to the entering time of each client. The one who enters first will be the next leader.
+
+Data structure we’re using:
+Ordered map: key is enter ordering and value is the corresponding client and his information.
+This is for election.
+
+Modules:
+Client: main module, deal with the main logic(Yi-Ping Lin)
+Group: a group of client with one acting as the leader(Miao Cheng)
+Election: Deal with election when the leader crashes.(Yilun Fu)
+Message: the struct which is sent via clients(Yilun Fu).
+Utility: for some utility functions(Miao Cheng).
+
