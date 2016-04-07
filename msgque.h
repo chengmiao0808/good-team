@@ -23,7 +23,7 @@ class HoldbackQueue{
 
 public:
 	HoldbackQueue(){	NumMsg = 0;}	// default constructor
-	MsgPack TopMsg(){	return MsgQueue.front();} // default constructor
+	MsgPack TopMsg(){	return MsgQueue.front();} // return  Top MsgPack
 
 	bool InsertMsg(MsgPack mp){
 		MsgQueue.push_back(mp);
@@ -35,12 +35,12 @@ public:
 
 	bool DeleteMsg(MsgPack mp){
 		for( it = MsgQueue.begin(); it! = MsgPack.end(); ++it){
-           	if( it->getID() == mp.getID()){
-               	MsgQueue.erase(it);
-               	NumMsg--;
+			if( it->getID() == mp.getID()){
+				MsgQueue.erase(it);
+				NumMsg--;
 				sort( MsgQueue.begin() , MsgQueue.end() , MsgComparator);
 				//		SortQueue();
-              	 	return true;
+				return true;
            	}
        	}
         return false;
