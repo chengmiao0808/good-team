@@ -26,13 +26,16 @@ public:
 	map<string, string> all_members_list; // <"ip_address:port", "name">
 	// Store the leader's "ip_address:port" info
 	string leader;
+	// Store the client's "ip_address:port" info
+	string client;
 	bool is_leader;
 
 	dchat() {
 		all_members_list = map<string, string>();
 	}
-	void start_new_group(string l_addr, string l_name);
-	void join_a_group(string l_addr, string m_addr, string m_name);
+	string get_ip_address();
+	void start_new_group(string l_name);
+	void join_a_group(string m_name, string l_addr);
 	void elect_a_leader();
 };
 
