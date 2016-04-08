@@ -1,49 +1,55 @@
+#ifndef MSGQUE_H_
+#define MSGQUE_H_
+
 #include <iostream>
 #include <string>
+#include <queue>
 #include <deque>
-#include "msgpack.h" 			// for message struct: MsgPack
+#include "msgPack.h" 			// for message struct: MsgPack
 
 using namespace std;
 
 
-
 /*	Comparator for the message struct: MsgPack 	*/
-struct MsgComparator{
-	bool operator() (const MsgPack& lhs, const MsgPack& rhs) const{
-		return lhs->getTime() < rhs->getTime();
+struct msgSorter{
+	bool operator() (const msgPack &lhs, const msgPack &rhs) const{
+		return lhs.time < rhs.time;
 	}
 };
-
+msgSorter ms;
 
 /*	The Holdback Queue Storing the MsgPacks	*/
-class HoldbackQueue{
-    deque<MsgPack>  MsgQueue;            // message package list
-    deque<MsgPack>::iterator it;   	   
-	int NumMsg;
+class holdbackQueue{
+    deque<msgPack>  msgQueue;            // message package list
+    //deque<MsgPack>::iterator it;   	   
+	int numMsg;
+
 
 public:
-	HoldbackQueue(){	NumMsg = 0;}	// default constructor
-	MsgPack TopMsg(){	return MsgQueue.front();} // return  Top MsgPack
+	holdbackQueue(){	numMsg = 0;}	// default constructor
+	msgPack topMsg(){	return msgQueue.front();} // return  Top MsgPack
 
-	bool InsertMsg(MsgPack mp){
-		MsgQueue.push_back(mp);
-		NumMsg++;
-		sort( MsgQueue.begin() , MsgQueue.end() , MsgComparator);
+	bool insertMsg(msgPack &mp){
+		msgQueue.push_back(mp);
+		numMsg++;
+		sort( msgQueue.begin() , msgQueue.end() , ms);
 //		SortQueue();
 		return true;
 	}
 
-	bool DeleteMsg(MsgPack mp){
-		for( it = MsgQueue.begin(); it! = MsgPack.end(); ++it){
-			if( it->getID() == mp.getID()){
-				MsgQueue.erase(it);
-				NumMsg--;
-				sort( MsgQueue.begin() , MsgQueue.end() , MsgComparator);
+	bool deleteMsg(msgPack &mp){
+		for(auto it = msgQueue.begin(); it! = msgQueue.end(); ++it){
+			if( it->username == mp.username){
+				msgQueue.erase(it);
+				numMsg--;
+				sort( msgQueue.begin() , msgQueue.end() , ms);
 				//		SortQueue();
 				return true;
            	}
-       	}
-        return false;
+		}
+		return false;
 	}
-
+	
 };
+
+#endif
