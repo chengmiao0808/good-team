@@ -1,0 +1,63 @@
+#include <string>
+#include <iostream>
+#include <vector>
+#include <stdlib.h>
+#include <stdio.h>
+#include <boost/lexical_cast.hpp>
+#ifdef MSGPACK_H
+#define MSGPACK_H
+
+using namespae std;
+
+/*	Comparator for the message struct: MsgPack 	*/
+struct msgPack{
+	string IP;
+	int port；
+	string username;
+	int time;
+	int command;
+	//command:
+
+	string msg;
+
+	msgPack() {};
+
+	msgPack(string IPaddress, int portNum, string name, int timestamp, int cmd, string message) {
+		IP = IPaddress;
+		port = portNum;
+		username = name;
+		time = timestamp;
+		command = cmd;
+		msg = message;
+	} 
+
+	static string serialize(msgPack m) {
+        return m.IP + "##" + to_string(m.port) + "##" + m.username + "##" + to_string(m.time)
+        + "##" + to_string(m.command) + "##" + m.message;
+    }
+
+    static msgPack deserialize(string str) {
+        vector<string> arr = split(str, "##");
+        string IP = arr[0];
+		int port = atoi(arr[1].c_str())；
+		string username = arr[2];
+		int time = atoi(arr[3].c_str());
+		int command = atoi(arr[4].c_str());
+		string msg = arr[5];
+        return msgPack(IP, port, username, time, command, msg);
+    }
+    
+    static vector<string> split(string str, string sep) {
+        vector<string> arr;
+        char* curr;
+        char* cstr = const_cast<char*>(str.c_str());
+        curr = strtok(cstr, sep.c_str());
+        while (curr != NULL) {
+            arr.push_back(string(curr));
+            curr = strtok(NULL, sep.c_str());
+        }
+        return arr;
+    }
+};
+
+#endif /* MSGPACK_H */
