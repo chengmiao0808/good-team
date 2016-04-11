@@ -6,18 +6,20 @@
 #include <vector>
 #include <stdlib.h>
 #include <stdio.h>
-#include <boost/lexical_cast.hpp>
 
 using namespae std;
 
 /*	Comparator for the message struct: MsgPack 	*/
 struct msgPack{
 	string IP;
-	int port；
+	int port;
 	string username;
 	int time;
 	int command;
 	//command:
+	//0: join
+	//1: leave
+
 
 	string msg;
 
