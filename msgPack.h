@@ -1,11 +1,12 @@
+#ifdef MSGPACK_H
+#define MSGPACK_H
+
 #include <string>
 #include <iostream>
 #include <vector>
 #include <stdlib.h>
 #include <stdio.h>
 #include <boost/lexical_cast.hpp>
-#ifdef MSGPACK_H
-#define MSGPACK_H
 
 using namespae std;
 

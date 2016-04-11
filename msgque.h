@@ -1,5 +1,5 @@
-#ifndef MSGQUE_H_
-#define MSGQUE_H_
+#ifndef MSGQUE_H
+#define MSGQUE_H
 
 #include <iostream>
 #include <string>
