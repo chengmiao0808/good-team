@@ -31,5 +31,58 @@ int start_a_leader(string l_addr) {
 }
 
 int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m_name) {
-	
+	int sock, sock2, num, len;
+	struct sockaddr_in me;
+	struct sockaddr_in other;
+
+	char *p_maddr = new char[m_addr.length()+1];
+	strcpy(p_maddr, m_addr.c_str());
+
+	char *ip_addr_me, *portno_me;
+	ip_addr_me = strtok(p_maddr, ":");
+	portno_me = strtok(NULL, ":");
+
+	sock = socket(AF_INET, SOCK_DGRAM, 0); 
+	if (sock < 0) {
+		return sock;
+	}
+
+	bzero((char *) &me, sizeof(me)); 
+    me.sin_family = AF_INET;
+    me.sin_addr.s_addr = inet_addr(ip_addr_me);
+    me.sin_port = htons(atoi(portno_me));
+
+    sock2 = bind(sock, (struct sockaddr *) &server, sizeof(server));
+    if (sock2 < 0) {
+    	return sock2;
+    }
+
+	char *p_laddr = new char[l_addr.length()+1];
+	strcpy(p_laddr, l_addr.c_str());
+
+	char *ip_addr_other, *portno_other;
+	ip_addr_other = strtok(p_laddr, ":");
+	portno_other = strtok(NULL, ":");
+
+	bzero((char *) &other, sizeof(other)); 
+    other.sin_family = AF_INET;
+    other.sin_addr.s_addr = inet_addr(ip_addr_other);
+    other.sin_port = htons(atoi(portno_other));
+
+    char buff[2048];
+    bzero(buff, 2048);
+
+    num = sendto(sock, buff, strlen(buff), 0, (struct sockaddr *) &other, sizeof(other));
+    if (num < 0) {
+    	return num;
+    }
+    len = sizeof(other);
+    bzero((char *) &other, len);
+    bzero(buff, 2048);
+   	num = recvfrom(sock, buff, 2048, 0, (struct sockaddr *) &other, &len);
+   	if (num < 0) {
+   		return num;
+   	}
+
+    return 0;
 }
