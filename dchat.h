@@ -18,6 +18,7 @@
 #include <deque>
 #include <sysexits.h>
 #include <signal.h>
+#include <iterator>
 
 class dchat
 {
