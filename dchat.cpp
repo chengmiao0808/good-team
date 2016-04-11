@@ -49,7 +49,7 @@ void dchat::start_new_group(string l_name) {
     srand((unsigned)time(NULL));
     int portno = rand() % 2000 + 8000;
     string l_addr = get_ip_address()+":"+to_string(portno);
-    int n = start_a_leader(l_addr, l_name);
+    int n = start_a_leader(l_addr);
     if (n == 0) {
       leader = l_addr;
       cout<<l_name<<" started a new chat, listening on "<<l_addr<<"\n"
