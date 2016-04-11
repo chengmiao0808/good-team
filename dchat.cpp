@@ -52,6 +52,7 @@ void dchat::start_new_group(string l_name) {
     int n = start_a_leader(l_addr);
     if (n == 0) {
       leader = l_addr;
+      all_members_list[l_addr] = l_name;
       cout<<l_name<<" started a new chat, listening on "<<l_addr<<"\n"
         <<"Succeeded, current users:\n"<<l_name<<" "<<l_addr<<" (Leader)\n"
         <<"Waiting for others to join...\n";
