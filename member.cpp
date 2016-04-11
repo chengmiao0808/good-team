@@ -1,4 +1,5 @@
 #include "member.h"
+#include "msgPack.h"
 
 using namespace std;
 
@@ -71,6 +72,11 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
 
     char buff[2048];
     bzero(buff, 2048);
+
+    int currtime = ;//get current time with utility function
+    struct msgPack msgpack(ip_addr_me, atoi(portno_me), m_name, currtime, 1, "N/A");
+    string msg = msgPack::serialize(msgpack);
+    strcpy(buff, msg.c_str());    
 
     num = sendto(sock, buff, strlen(buff), 0, (struct sockaddr *) &other, sizeof(other));
     if (num < 0) {
