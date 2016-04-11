@@ -36,7 +36,7 @@ public:
 	string get_ip_address();
 	void start_new_group(string l_name);
 	void join_a_group(string m_name, string l_addr);
-	void elect_a_leader();
+	// void elect_a_leader();
 };
 
 #endif
