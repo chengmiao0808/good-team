@@ -70,10 +70,10 @@ void dchat::join_a_group(string m_name, string l_addr) {
     string m_addr = get_ip_address()+":"+to_string(portno);
     int n = start_a_regular_member(this, l_addr, m_addr, m_name);
     if (n == 0) {
-      client = m_addr;
+      my_addr = m_addr;
       cout<<m_name<<" started a new chat, on "<<l_addr<<", listening on\n"<<m_addr<<"\n"
         <<"Succeeded, current users:\n";
-      typedef map<string, string>>::iterator it_type;
+      typedef map<string, string>::iterator it_type;
       for (it_type iter = all_members_list.begin(); iter != all_members_list.end(); iter++) {
         cout<<iter->second<<" "<<iter->first;
         if (iter->first == leader)
