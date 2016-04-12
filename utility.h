@@ -6,9 +6,34 @@
 #include <time.h>      /* time_t, struct tm, difftime, time, mktime */
 #include <vector>
 #include <stdlib.h>
-#include "msgpack.h"
 
 using namespace std;
+
+/*	Comparator for the message struct: MsgPack 	*/
+class msgpack {
+public:
+	string IP;
+	int port;
+	string username;
+	int t_time;
+	int command;
+	//command:
+	//0: join
+	//1: leave
+	string msg;
+	
+	msgpack () {};
+
+	msgpack(string IPaddress, int portNum, string name, int timestamp, int cmd, string message) {
+		IP = IPaddress;
+		port = portNum;
+		username = name;
+		t_time = timestamp;
+		command = cmd;
+		msg = message;
+	} 
+    
+};
 
 int getLocalTime();
 

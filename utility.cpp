@@ -1,13 +1,10 @@
 #include "utility.h"
-#include "msgpack.h"
 #include <stdio.h>      
 #include <time.h>      /* time_t, struct tm, difftime, time, mktime */
 #include <stdio.h>
 #include <stdlib.h>
 
-
 using namespace std;
-
 
 /*
  * Get local current time

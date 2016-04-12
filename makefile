@@ -9,10 +9,10 @@ dchat: member.o dchat.o utility.o
 	gcc -lpthread -std=c++11 -o dchat dchat.o utility.o member.o 
 
 
-utility.o: utility.cpp msgpack.h utility.h 
+utility.o: utility.cpp utility.h 
 	gcc -std=c++11  -c utility.cpp
 
-dchat.o: dchat.cpp dchat.h heartbeat.h msgpack.h 
+dchat.o: dchat.cpp dchat.h heartbeat.h
 	gcc -lpthread -std=c++11  -c dchat.cpp
 
 

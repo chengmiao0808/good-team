@@ -1,4 +1,3 @@
-
 #include "utility.h"
 #include "member.h"
 
