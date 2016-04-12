@@ -83,8 +83,8 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
     bzero(buff, 2048);
 
     int currtime = getLocalTime();  //get current time with utility function
-    struct msgPack msgpack(ip_addr_me, atoi(portno_me), m_name, currtime, 1, "N/A");
-    string msg_sent = msgPack::serialize(msgpack);
+    struct msgpack msgpack(ip_addr_me, atoi(portno_me), m_name, currtime, 1, "N/A");
+    string msg_sent = msgpack::serialize(msgpack);
     strcpy(buff, msg_sent.c_str());
 
     p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
@@ -99,7 +99,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
         return p_chat->num;
     }
     string msg_recv = buff;
-    struct msgPack msg_pack = msgPack::deserialize(msg_recv);
+    struct msgpack msg_pack = msgpack::deserialize(msg_recv);
     string members = msg_pack.msg;
     vector<string> vec = split(members, "\t");
     p_chat->leader = vec.pop_back();
