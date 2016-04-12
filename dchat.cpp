@@ -1,6 +1,7 @@
 #include "dchat.h"
 #include "member.h"
 #include <ifaddrs.h>
+#include <pthread.h>
 #include <time.h>
 
 using namespace std;
@@ -45,16 +46,13 @@ string dchat::get_ip_address() {
 
 void dchat::start_new_group(string l_name) {
 	is_leader = true;
-  my_name = l;
   while (1) {
     srand((unsigned)time(NULL));
     int portno = rand() % 2000 + 8000;
     string l_addr = get_ip_address()+":"+to_string(portno);
-    int n = start_a_leader(l_addr);
+    int n = start_a_leader(this, l_addr);
     if (n == 0) {
       leader = l_addr;
-      my_addr = l_addr;
-      my_name = l_name;
       all_members_list[l_addr] = l_name;
       cout<<l_name<<" started a new chat, listening on "<<l_addr<<"\n"
         <<"Succeeded, current users:\n"<<l_name<<" "<<l_addr<<" (Leader)\n"
@@ -72,8 +70,7 @@ void dchat::join_a_group(string m_name, string l_addr) {
     string m_addr = get_ip_address()+":"+to_string(portno);
     int n = start_a_regular_member(this, l_addr, m_addr, m_name);
     if (n == 0) {
-      my_addr = m_addr;
-      my_name = m_name;
+      client = m_addr;
       cout<<m_name<<" started a new chat, on "<<l_addr<<", listening on\n"<<m_addr<<"\n"
         <<"Succeeded, current users:\n";
       typedef map<string, string>>::iterator it_type;
@@ -94,7 +91,7 @@ void *recv_msgs() {
 }
 
 void *send_msgs() {
-
+  
   pthread_exit(NULL);
 }
 
@@ -104,18 +101,18 @@ int main(int argc, char *argv[]) {
 		error("Error! Please input: ./dchat USER or ./dchat USER ADDR:PORT\n");
 	}
 	if (argc == 2) {
-		dchat *p_dchat = new dechat();
-		p_dchat->start_new_group(string(argv[1]);
+		dchat *p_dchat = new dchat();
+		p_dchat->start_new_group(string(argv[1]));
 	}
 	else {
-		dchat *p_dchat = new dechat();
+		dchat *p_dchat = new dchat();
 		p_dchat->join_a_group(string(argv[1]), string(argv[2]));
 	}
   pthread_t threads[2];
   int t1, t2;
 
-  t1 = pthread_create(&threads[0], NULL, recv_msgs, (void *)0);
-  t2 = pthread_create(&threads[1], NULL, send_msgs, (void *)1);
+  pthread_create(&threads[0], NULL, recv_msgs, (void *)0);
+  pthread_create(&threads[1], NULL, send_msgs, (void *)1);
   
   pthread_join(threads[0], NULL);
   pthread_join(threads[1], NULL);
