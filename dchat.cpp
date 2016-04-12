@@ -181,12 +181,14 @@ void dchat::join_a_group(string m_name, string l_addr) {
   }
 }
 
-void *recv_msgs(void *pt) {
+void *recv_msgs(void *threadarg) {
+  dchat *p_chat = (dchat *) threadarg;
 
   pthread_exit(NULL);
 }
 
-void *send_msgs(void *pt) {
+void *send_msgs(void *threadarg) {
+  dchat *p_chat = (dchat *) threadarg;
   
   pthread_exit(NULL);
 }
@@ -196,18 +198,17 @@ int main(int argc, char *argv[]) {
 	{
 		error("Error! Please input: ./dchat USER or ./dchat USER ADDR:PORT\n");
 	}
+  dchat *p_dchat = new dchat();
 	if (argc == 2) {
-		dchat *p_dchat = new dchat();
 		p_dchat->start_new_group(string(argv[1]));
 	}
 	else {
-		dchat *p_dchat = new dchat();
 		p_dchat->join_a_group(string(argv[1]), string(argv[2]));
 	}
   pthread_t threads[2];
 
-  pthread_create(&threads[0], NULL, recv_msgs, NULL);
-  pthread_create(&threads[1], NULL, send_msgs, NULL);
+  pthread_create(&threads[0], NULL, recv_msgs, (void *)p_dchat);
+  pthread_create(&threads[1], NULL, send_msgs, (void *)p_dchat);
   
   pthread_join(threads[0], NULL);
   pthread_join(threads[1], NULL);
