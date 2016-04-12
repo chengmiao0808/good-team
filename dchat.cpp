@@ -45,6 +45,7 @@ string dchat::get_ip_address() {
 
 void dchat::start_new_group(string l_name) {
 	is_leader = true;
+  my_name = l;
   while (1) {
     srand((unsigned)time(NULL));
     int portno = rand() % 2000 + 8000;
@@ -52,6 +53,8 @@ void dchat::start_new_group(string l_name) {
     int n = start_a_leader(l_addr);
     if (n == 0) {
       leader = l_addr;
+      my_addr = l_addr;
+      my_name = l_name;
       all_members_list[l_addr] = l_name;
       cout<<l_name<<" started a new chat, listening on "<<l_addr<<"\n"
         <<"Succeeded, current users:\n"<<l_name<<" "<<l_addr<<" (Leader)\n"
@@ -69,7 +72,8 @@ void dchat::join_a_group(string m_name, string l_addr) {
     string m_addr = get_ip_address()+":"+to_string(portno);
     int n = start_a_regular_member(this, l_addr, m_addr, m_name);
     if (n == 0) {
-      client = m_addr;
+      my_addr = m_addr;
+      my_name = m_name;
       cout<<m_name<<" started a new chat, on "<<l_addr<<", listening on\n"<<m_addr<<"\n"
         <<"Succeeded, current users:\n";
       typedef map<string, string>>::iterator it_type;
@@ -90,7 +94,7 @@ void *recv_msgs() {
 }
 
 void *send_msgs() {
-  
+
   pthread_exit(NULL);
 }
 

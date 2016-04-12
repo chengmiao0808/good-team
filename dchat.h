@@ -28,8 +28,9 @@ public:
 	map<string, string> all_members_list; // <"ip_address:port", "name">
 	// Store the leader's "ip_address:port" info
 	string leader;
-	// Store the client's "ip_address:port" info
-	string client;
+	// Store my own "ip_address:port" info
+	string my_addr;
+	string my_name;
 	bool is_leader;
 
 	dchat() {
