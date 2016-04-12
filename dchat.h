@@ -32,6 +32,9 @@ public:
 	string my_addr;
 	string my_name;
 	bool is_leader;
+	int sock, sock2, num, len;
+    struct sockaddr_in me;
+    struct sockaddr_in other;
 
 	dchat() {
 		all_members_list = map<string, string>();
