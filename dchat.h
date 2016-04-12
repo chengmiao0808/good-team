@@ -19,6 +19,7 @@
 #include <sysexits.h>
 #include <signal.h>
 #include <iterator>
+#include <pthread.h>
 
 class dchat
 {

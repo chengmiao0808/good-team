@@ -109,8 +109,6 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
     while (!vec.empty()) {
         p_chat->all_members_list[vec.pop_back()] = vec.pop_back();
     }
-    
-
 
     return 0;
 }

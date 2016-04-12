@@ -84,6 +84,16 @@ void dchat::join_a_group(string m_name, string l_addr) {
   }
 }
 
+void *recv_msgs() {
+
+  pthread_exit(NULL);
+}
+
+void *send_msgs() {
+  
+  pthread_exit(NULL);
+}
+
 int main(int argc, char *argv[]) {
 	if (argc != 2 && argc != 3)
 	{
@@ -97,6 +107,13 @@ int main(int argc, char *argv[]) {
 		dchat *p_dchat = new dechat();
 		p_dchat->join_a_group(string(argv[1]), string(argv[2]));
 	}
+  pthread_t threads[2];
+  int t1, t2;
 
+  t1 = pthread_create(&threads[0], NULL, recv_msgs, (void *)0);
+  t2 = pthread_create(&threads[1], NULL, send_msgs, (void *)1);
+  
+  pthread_join(threads[0], NULL);
+  pthread_join(threads[1], NULL);
 	return 0;
 }
