@@ -9,7 +9,7 @@ Make a github private repository
 
 Week2:(04/1)
 Data Structure Design
-Implement the basic functions I (Multicast & Ordered protocol, etc.)
+Implement the basic functions I (Infrastructure and Multicast, etc.)
 
 Week3:(04/8)
 Implement the basic functions II (Sequencer election, etc.)
@@ -24,9 +24,11 @@ Extra Credit Part II
 Work Distribution:
 Yilun Fu: Multicast protocol and Message design
 
-Yi-ping Lin: Ordered protocol and Client design
+Miao Cheng: Basic infrastructure and Server design
 
-Miao Cheng: Sequencer election and Server design
+Yi-ping Lin: Ordered protocol
+
+All: Sequencer election
 
 Detailed Design Specification:
 Shared Functions:
@@ -63,9 +65,7 @@ Ordered map: key is enter ordering and value is the corresponding client and his
 This is for election.
 
 Modules:
-Client: main module, deal with the main logic(Yi-Ping Lin)
-Group: a group of client with one acting as the leader(Miao Cheng)
-Election: Deal with election when the leader crashes.(Yilun Fu)
-Message: the struct which is sent via clients(Yilun Fu).
-Utility: for some utility functions(Miao Cheng).
-
+Server: main module, deal with the main logic (Miao Cheng and Yilun Fu)
+Election: deal with election when the leader crashes (Yilun Fu, Miao Cheng, and Yi-Ping Lin)
+Message: the struct which is sent via clients (Yilun Fu and Yi-Ping Lin)
+Utility: for some utility functions (Yilun Fu and Miao Cheng)
