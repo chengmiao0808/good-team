@@ -10,7 +10,8 @@
 using namespae std;
 
 /*	Comparator for the message struct: MsgPack 	*/
-struct msgpack{
+class msgpack {
+public:
 	string IP;
 	int port;
 	string username;
