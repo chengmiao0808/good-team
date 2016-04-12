@@ -2,6 +2,7 @@
 #define UTILITY_H
 
 #include <string>
+#include <string.h>
 #include <stdio.h>      
 #include <time.h>      /* time_t, struct tm, difftime, time, mktime */
 #include <vector>
