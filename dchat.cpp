@@ -84,12 +84,12 @@ void dchat::join_a_group(string m_name, string l_addr) {
   }
 }
 
-void *recv_msgs() {
+void *recv_msgs(void *pt) {
 
   pthread_exit(NULL);
 }
 
-void *send_msgs() {
+void *send_msgs(void *pt) {
   
   pthread_exit(NULL);
 }
@@ -110,8 +110,8 @@ int main(int argc, char *argv[]) {
   pthread_t threads[2];
   int t1, t2;
 
-  pthread_create(&threads[0], NULL, recv_msgs, (void *)0);
-  pthread_create(&threads[1], NULL, send_msgs, (void *)1);
+  pthread_create(&threads[0], NULL, recv_msgs, NULL);
+  pthread_create(&threads[1], NULL, send_msgs, NULL);
   
   pthread_join(threads[0], NULL);
   pthread_join(threads[1], NULL);
