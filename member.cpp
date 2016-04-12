@@ -36,7 +36,7 @@ int start_a_leader(dchat *p_chat, string l_addr) {
     p_chat->me.sin_addr.s_addr = inet_addr(ip_addr);
     p_chat->me.sin_port = htons(atoi(portno));
 
-    p_chat->sock2 = bind(p_chat->sock, (struct sockaddr *) &(p_chat->me), sizeof(p_chat->me));
+    p_chat->sock2 = ::bind(p_chat->sock, (struct sockaddr *) &(p_chat->me), sizeof(p_chat->me));
     if (p_chat->sock2 < 0) {
         return p_chat->sock2;
     }
@@ -62,7 +62,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
     p_chat->me.sin_addr.s_addr = inet_addr(ip_addr_me);
     p_chat->me.sin_port = htons(atoi(portno_me));
 
-    p_chat->sock2 = bind(p_chat->sock, (struct sockaddr *) &(p_chat->me), sizeof(p_chat->me));
+    p_chat->sock2 = ::bind(p_chat->sock, (struct sockaddr *) &(p_chat->me), sizeof(p_chat->me));
     if (p_chat->sock2 < 0) {
         return p_chat->sock2;
     }
