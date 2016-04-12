@@ -9,8 +9,9 @@
 
 using namespae std;
 
-/*	Comparator for the message struct: MsgPack 	*/
-struct msgpack {
+/*	Comparator for the message class: MsgPack 	*/
+class msgpack {
+public:
 	string IP;
 	int port;
 	string username;
