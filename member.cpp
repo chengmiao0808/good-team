@@ -94,7 +94,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
     p_chat->len = sizeof(p_chat->other);
     bzero((char *) &(p_chat->other), p_chat->len);
     bzero(buff, 2048);
-    p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), &(p_chat->len));
+    p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
     if (p_chat->num < 0) {
         return p_chat->num;
     }
