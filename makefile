@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -g
+CXXFLAGS = -Wall -g -std=c++11
 
 dchat: dchat.o utility.o
 	$(CXX) $(CXXFLAGS) -o dchat dchat.o utility.o
