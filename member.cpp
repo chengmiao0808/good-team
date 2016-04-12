@@ -102,7 +102,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
     struct msgPack msg_pack = msgPack::deserialize(msg_recv);
     string members = msg_pack.msg;
     vector<string> vec = split(members, "\t");
-    p_char->leader = vec.pop_back();
+    p_chat->leader = vec.pop_back();
     while (!vec.empty()) {
         p_chat->all_members_list[vec.pop_back()] = vec.pop_back();
     }
