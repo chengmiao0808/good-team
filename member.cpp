@@ -1,7 +1,6 @@
-#include "member.h"
-#include "msgpack.h"
-#include "utility.h"
 
+#include "utility.h"
+#include "member.h"
 
 using namespace std;
 
@@ -85,7 +84,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
 
     int currtime = getLocalTime();  //get current time with utility function
     msgpack msg_pack(ip_addr_me, atoi(portno_me), m_name, currtime, 1, "N/A");
-    string msg_sent = utility::serialize(msg_pack);
+    string msg_sent = serialize(msg_pack);
     strcpy(buff, msg_sent.c_str());
 
     p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
@@ -100,12 +99,17 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
         return p_chat->num;
     }
     string msg_recv = buff;
-    msg_pack = utility::deserialize(msg_recv);
+    msg_pack = deserialize(msg_recv);
     string members = msg_pack.msg;
     vector<string> vec = split(members, "\t");
-    p_chat->leader = vec.pop_back();
+    p_chat->leader = vec.back();
+    vec.pop_back();
     while (!vec.empty()) {
-        p_chat->all_members_list[vec.pop_back()] = vec.pop_back();
+        string key = vec.back();
+        vec.pop_back();
+        string val = vec.back();
+        vec.pop_back();
+        p_chat->all_members_list[key] = val;
     }
 
     return 0;

@@ -7,10 +7,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-using namespae std;
+using namespace std;
 
 /*	Comparator for the message struct: MsgPack 	*/
-struct msgpack {
+class msgpack {
+public:
 	string IP;
 	int port;
 	string username;
@@ -21,6 +22,8 @@ struct msgpack {
 	//1: leave
 	string msg;
 	
+	msgpack () {};
+
 	msgpack(string IPaddress, int portNum, string name, int timestamp, int cmd, string message) {
 		IP = IPaddress;
 		port = portNum;

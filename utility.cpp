@@ -1,9 +1,10 @@
 #include "utility.h"
+#include "msgpack.h"
 #include <stdio.h>      
 #include <time.h>      /* time_t, struct tm, difftime, time, mktime */
 #include <stdio.h>
 #include <stdlib.h>
-#include "msgpack.h"
+
 
 using namespace std;
 
@@ -22,7 +23,7 @@ int getLocalTime(){
  */
 string serialize(msgpack m) {
 	return m.IP + "##" + to_string(m.port) + "##" + m.username + "##" + to_string(m.time)
-	+ "##" + to_string(m.command) + "##" + m.message;
+	+ "##" + to_string(m.command) + "##" + m.msg;
 }
 
 /*
