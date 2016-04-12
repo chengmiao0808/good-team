@@ -89,12 +89,12 @@ void dchat::join_a_group(string m_name, string l_addr) {
 }
 
 void *recv_msgs() {
-
+  
   pthread_exit(NULL);
 }
 
 void *send_msgs() {
-
+  
   pthread_exit(NULL);
 }
 
