@@ -50,7 +50,7 @@ void dchat::start_new_group(string l_name) {
     srand((unsigned)time(NULL));
     int portno = rand() % 2000 + 8000;
     string l_addr = get_ip_address()+":"+to_string(portno);
-    int n = start_a_leader(l_addr);
+    int n = start_a_leader(this, l_addr);
     if (n == 0) {
       leader = l_addr;
       all_members_list[l_addr] = l_name;
