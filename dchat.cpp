@@ -76,7 +76,7 @@ void dchat::join_a_group(string m_name, string l_addr) {
       typedef map<string, string>>::iterator it_type;
       for (it_type iter = all_members_list.begin(); iter != all_members_list.end(); iter++) {
         cout<<iter->second<<" "<<iter->first;
-        if (iter == all_members_list.begin())
+        if (iter->first == leader)
           cout<<" (Leader)";
         cout<<"\n";
       }
