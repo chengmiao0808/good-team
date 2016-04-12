@@ -1,20 +1,13 @@
-CC = g++
+CXX = g++
+CXXFLAGS = -Wall -g
 
-all: dchat
+dchat: dchat.o utility.o
+	$(CXX) $(CXXFLAGS) -o dchat dchat.o utility.o
 
-member.o: member.cpp member.h utility.h
-	gcc -std=c++11  -c member.cpp utility.cpp
+dchat.o: dchat.cpp dchat.h utility.h
+	$(CXX) $(CXXFLAGS) -c dchat.cpp
 
-dchat: member.o dchat.o utility.o 
-	gcc -lpthread -std=c++11 -o dchat dchat.o utility.o member.o 
-
-
-utility.o: utility.cpp utility.h 
-	gcc -std=c++11  -c utility.cpp
-
-dchat.o: dchat.cpp dchat.h heartbeat.h
-	gcc -lpthread -std=c++11  -c dchat.cpp
-
+utility.o: utility.h
 
 clean:
 	rm -rf *.o dchat

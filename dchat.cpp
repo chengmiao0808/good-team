@@ -1,13 +1,101 @@
 #include "dchat.h"
-#include "member.h"
+#include "utility.h"
 #include <ifaddrs.h>
 #include <time.h>
 
 using namespace std;
 
-void error(char *err) {
-  perror(err);
+void error(string err) {
+  perror(err.c_str());
   exit(1);
+}
+
+int start_a_leader(dchat *p_chat, string l_addr) {
+  vector<string> vec = split(l_addr, ":");
+  string ip_addr = vec.front();
+  string portno = vec.back();
+
+  p_chat->sock = socket(AF_INET, SOCK_DGRAM, 0); 
+  if (p_chat->sock < 0) {
+    return p_chat->sock;
+  }
+
+  bzero((char *) &(p_chat->me), sizeof(p_chat->me)); 
+  p_chat->me.sin_family = AF_INET;
+  p_chat->me.sin_addr.s_addr = inet_addr(ip_addr.c_str());
+  p_chat->me.sin_port = htons(stoi(portno));
+
+  p_chat->sock2 = ::bind(p_chat->sock, (struct sockaddr *) &(p_chat->me), sizeof(p_chat->me));
+  if (p_chat->sock2 < 0) {
+    return p_chat->sock2;
+  }
+  return 0;
+}
+
+int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m_name) {
+  vector<string> vec_me = split(m_addr, ":");
+  string ip_addr_me = vec_me.front();
+  string portno_me = vec_me.back();
+
+  p_chat->sock = socket(AF_INET, SOCK_DGRAM, 0); 
+  if (p_chat->sock < 0) {
+    return p_chat->sock;
+  }
+
+  bzero((char *) &(p_chat->me), sizeof(p_chat->me)); 
+  p_chat->me.sin_family = AF_INET;
+  p_chat->me.sin_addr.s_addr = inet_addr(ip_addr_me.c_str());
+  p_chat->me.sin_port = htons(stoi(portno_me));
+
+  p_chat->sock2 = ::bind(p_chat->sock, (struct sockaddr *) &(p_chat->me), sizeof(p_chat->me));
+  if (p_chat->sock2 < 0) {
+    return p_chat->sock2;
+  }
+
+  vector<string> vec_other = split(l_addr, ":");
+  string ip_addr_other = vec_other.front();
+  string portno_other = vec_other.back();
+
+  bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
+  p_chat->other.sin_family = AF_INET;
+  p_chat->other.sin_addr.s_addr = inet_addr(ip_addr_other.c_str());
+  p_chat->other.sin_port = htons(stoi(portno_other));
+
+  char buff[2048];
+  bzero(buff, 2048);
+
+  int currtime = getLocalTime();  //get current time with utility function
+  msgpack msg_pack(ip_addr_me, stoi(portno_me), m_name, currtime, 1, "N/A");
+  string msg_sent = serialize(msg_pack);
+  strcpy(buff, msg_sent.c_str());
+
+  p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
+  if (p_chat->num < 0) {
+    return p_chat->num;
+  }
+
+  p_chat->len = sizeof(p_chat->other);
+  bzero((char *) &(p_chat->other), p_chat->len);
+  bzero(buff, 2048);
+  p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
+  if (p_chat->num < 0) {
+    return p_chat->num;
+  }
+  string msg_recv = buff;
+  msg_pack = deserialize(msg_recv);
+  string members = msg_pack.msg;
+  vector<string> vec = split(members, "\t");
+  p_chat->leader = vec.back();
+  vec.pop_back();
+  while (!vec.empty()) {
+    string key = vec.back();
+    vec.pop_back();
+    string val = vec.back();
+    vec.pop_back();
+    p_chat->all_members_list[key] = val;
+  }
+
+  return 0;
 }
 
 string dchat::get_ip_address() {
@@ -108,7 +196,6 @@ int main(int argc, char *argv[]) {
 		p_dchat->join_a_group(string(argv[1]), string(argv[2]));
 	}
   pthread_t threads[2];
-  int t1, t2;
 
   pthread_create(&threads[0], NULL, recv_msgs, NULL);
   pthread_create(&threads[1], NULL, send_msgs, NULL);

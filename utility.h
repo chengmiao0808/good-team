@@ -10,7 +10,7 @@
 
 using namespace std;
 
-/*	Comparator for the message struct: MsgPack 	*/
+/*	Comparator for the message class: MsgPack 	*/
 class msgpack {
 public:
 	string IP;
