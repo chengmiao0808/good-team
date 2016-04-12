@@ -1,7 +1,6 @@
 #include "dchat.h"
 #include "member.h"
 #include <ifaddrs.h>
-#include <pthread.h>
 #include <time.h>
 
 using namespace std;
