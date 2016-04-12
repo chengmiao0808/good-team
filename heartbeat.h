@@ -13,10 +13,10 @@ struct heartbeat {
 	int port;
 	int timestamp;
 
-	heartbeat(string IPaddress, int portnum, int time) {
+	heartbeat(string IPaddress, int portnum, int t_time) {
 		IP = IPaddress;
 		port = portnum;
-		timestamp = time;
+		timestamp = t_time;
 	}
 
 	static string heartbeat(heartbeat h) {
@@ -27,8 +27,8 @@ struct heartbeat {
         vector<string> arr = split(str, "##");
         string IP = arr[0];
 		int port = atoi(arr[1].c_str())；
-		int time = atoi(arr[2].c_str());
-        return msgPack(IP, port, time);
+		int t_time = atoi(arr[2].c_str());
+        return msgPack(IP, port, t_time);
     }
     
     static vector<string> split(string str, string sep) {

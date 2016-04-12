@@ -22,7 +22,7 @@ int getLocalTime(){
  * Serilize a string to msgpack
  */
 string serialize(msgpack m) {
-	return m.IP + "##" + to_string(m.port) + "##" + m.username + "##" + to_string(m.time)
+	return m.IP + "##" + to_string(m.port) + "##" + m.username + "##" + to_string(m.t_time)
 	+ "##" + to_string(m.command) + "##" + m.msg;
 }
 
@@ -34,10 +34,10 @@ msgpack deserialize(string str) {
 	string IP = arr[0];
 	int port = atoi(arr[1].c_str());
 	string username = arr[2];
-	int time = atoi(arr[3].c_str());
+	int t_time = atoi(arr[3].c_str());
 	int command = atoi(arr[4].c_str());
 	string msg = arr[5];
-    return msgpack(IP, port, username, time, command, msg);
+    return msgpack(IP, port, username, t_time, command, msg);
 }
 
 vector<string> split(string str, string sep) {
