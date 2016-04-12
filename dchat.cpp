@@ -11,9 +11,13 @@ void error(string err) {
 }
 
 int start_a_leader(dchat *p_chat, string l_addr) {
+  cout<<"start_a_leader is called!"<<endl;
+  cout<<l_addr<<endl;
   vector<string> vec = split(l_addr, ":");
   string ip_addr = vec.front();
   string portno = vec.back();
+  cout<<ip_addr<<endl;
+  cout<<portno<<endl;
 
   p_chat->sock = socket(AF_INET, SOCK_DGRAM, 0); 
   if (p_chat->sock < 0) {
@@ -122,9 +126,13 @@ string dchat::get_ip_address() {
       if (n != 0) {
       	error("Error with getnameinfo!\n");
       }
-      if (strcmp(p_ifa->ifa_name, "eth0") == 0) {
+      cout<<p_ifa->ifa_name<<endl;
+      cout<<"host is: "<<host<<endl;
+      if (strcmp(p_ifa->ifa_name, "en0") == 0) {
+        string my_ip = string(host);
         freeifaddrs(p_ifaddrs);
-        return string(host);
+        cout<<"my_ip is: "<<my_ip<<endl;
+        return my_ip;
       }
   	}
   	p_ifa = p_ifa->ifa_next;
@@ -132,6 +140,7 @@ string dchat::get_ip_address() {
 }
 
 void dchat::start_new_group(string l_name) {
+  cout<<"dchat::start_new_group is called!\n";
 	is_leader = true;
   while (1) {
     srand((unsigned)time(NULL));
