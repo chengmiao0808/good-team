@@ -32,7 +32,7 @@ public:
 	string my_addr;
 	string my_name;
 	bool is_leader;
-
+	
 	dchat() {
 		all_members_list = map<string, string>();
 	}

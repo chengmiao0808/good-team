@@ -6,6 +6,6 @@
 using namespace std;
 
 int getLocalTime();
-
+int splitString(string str, string delimeter);
 
 #endif

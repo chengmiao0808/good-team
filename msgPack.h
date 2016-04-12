@@ -10,7 +10,7 @@
 using namespae std;
 
 /*	Comparator for the message struct: MsgPack 	*/
-struct msgPack{
+struct msgpack{
 	string IP;
 	int port;
 	string username;
@@ -23,9 +23,9 @@ struct msgPack{
 
 	string msg;
 
-	msgPack() {};
+	msgpack() {};
 
-	msgPack(string IPaddress, int portNum, string name, int timestamp, int cmd, string message) {
+	msgpack(string IPaddress, int portNum, string name, int timestamp, int cmd, string message) {
 		IP = IPaddress;
 		port = portNum;
 		username = name;
@@ -34,12 +34,12 @@ struct msgPack{
 		msg = message;
 	} 
 
-	static string serialize(msgPack m) {
+	static string serialize(msgpack m) {
         return m.IP + "##" + to_string(m.port) + "##" + m.username + "##" + to_string(m.time)
         + "##" + to_string(m.command) + "##" + m.message;
     }
 
-    static msgPack deserialize(string str) {
+    static msgpack deserialize(string str) {
         vector<string> arr = split(str, "##");
         string IP = arr[0];
 		int port = atoi(arr[1].c_str())；
@@ -63,4 +63,4 @@ struct msgPack{
     }
 };
 
-#endif /* MSGPACK_H */
+#endif /* MSG_PACK_H */

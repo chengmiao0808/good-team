@@ -1,11 +1,11 @@
-#ifndef MSGQUE_H
+#ifdef MSGQUE_H
 #define MSGQUE_H
 
 #include <iostream>
 #include <string>
 #include <queue>
 #include <deque>
-#include "msgPack.h" 			// for message struct: MsgPack
+#include "msgpack.h" 			// for message struct: MsgPack
 
 using namespace std;
 
