@@ -15,7 +15,7 @@ public:
 	string IP;
 	int port;
 	string username;
-	int time;
+	int t_time;
 	int command;
 	//command:
 	//0: join
@@ -28,7 +28,7 @@ public:
 		IP = IPaddress;
 		port = portNum;
 		username = name;
-		time = timestamp;
+		t_time = timestamp;
 		command = cmd;
 		msg = message;
 	} 
