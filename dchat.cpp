@@ -2,8 +2,11 @@
 #include "utility.h"
 #include <ifaddrs.h>
 #include <time.h>
+#include <mutex>          // std::mutex
 
 using namespace std;
+
+mutex mtx;
 
 void error(string err) {
   perror(err.c_str());
@@ -223,6 +226,7 @@ void broadcast(dchat *p_chat, string msg) {
 void *recv_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
 
+  //mtx.lock();
   if(p_chat->is_leader == true){
     bzero((char *) &(p_chat->other), p_chat->len);
     char buff[2048];
@@ -248,13 +252,19 @@ void *recv_msgs(void *threadarg) {
       string portno_me = myvec.back();
       int currtime = getLocalTime();  
 
+
+      string ip_addr = msg_pack.IP;
+      string portno = to_string(msg_pack.port);
+      bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
+      p_chat->other.sin_family = AF_INET;
+      p_chat->other.sin_addr.s_addr = inet_addr(ip_addr.c_str());
+      p_chat->other.sin_port = htons(stoi(portno));
 //SHOULD SEND BACK MEMBER LIST
-      msgpack msg_pack(ip_addr_me, stoi(portno_me), p_chat->my_name, currtime, 0, "ACCEPT JOIN");
+      msgpack msg_pack(ip_addr_me, stoi(portno_me), p_chat->my_name, currtime, 0, "sddssksdjls  lin");
       string msg_sent = serialize(msg_pack);
       strcpy(nbuff, msg_sent.c_str());
       cout<<nbuff<<endl;
 
-// Have a problem HERE
       p_chat->num = sendto(p_chat->sock, nbuff, strlen(nbuff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
       if (p_chat->num < 0) {
         perror("sendto returns value < 0 \n");
@@ -302,6 +312,8 @@ void *recv_msgs(void *threadarg) {
     }    
 
   }
+  //mtx.unlock();
+
 
   pthread_exit(NULL);
 }
@@ -309,6 +321,8 @@ void *recv_msgs(void *threadarg) {
 
 void *send_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
+
+  //mtx.lock();
   if(p_chat->is_leader == true){
 
     cout<<"What's on your mind?(You are the leader)"<<endl;
@@ -317,7 +331,7 @@ void *send_msgs(void *threadarg) {
     broadcast( p_chat, line);
     cout<<"Successfully broadcast leader's msg\n"<<endl;    
 
-  }else{
+  }else{// non-leader member
 
     cout<<"What's on your mind?(You are not the leader)"<<endl;
     string line;
@@ -339,7 +353,9 @@ void *send_msgs(void *threadarg) {
       perror("sendto returns value < 0 \n");
       pthread_exit(NULL);
     }   
-  }  
+  }
+  //mtx.unlock();
+
   pthread_exit(NULL);
 }
 
