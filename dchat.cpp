@@ -10,24 +10,7 @@ void error(string err) {
   exit(1);
 }
 
-void broadcast(dchat *p_chat, string msg) {
-  for (it_type iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
-    vector<string> vec = split(iter->first, ":");
-    string ip_addr = vec_me.front();
-    string portno = vec_me.back();
 
-    bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
-    p_chat->other.sin_family = AF_INET;
-    p_chat->other.sin_addr.s_addr = inet_addr(ip_addr.c_str());
-    p_chat->other.sin_port = htons(stoi(portno));
-
-     p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
-    if (p_chat->num < 0) {
-      return p_chat->num;
-    }
-
-  }
-}
 
 int start_a_leader(dchat *p_chat, string l_addr, string l_name) {
   cout<<"start_a_leader is called!"<<endl;
@@ -201,17 +184,101 @@ void dchat::join_a_group(string m_name, string l_addr) {
   }
 }
 
+
+void broadcast(dchat *p_chat, string msg) {
+
+  for (auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
+  cout<<"\t this iter: \t"<< iter->first << endl;
+
+    vector<string> vec_other = split(iter->first, ":");
+    string ip_addr = vec_other.front();
+    string portno = vec_other.back();
+
+    bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
+    p_chat->other.sin_family = AF_INET;
+    p_chat->other.sin_addr.s_addr = inet_addr(ip_addr.c_str());
+    p_chat->other.sin_port = htons(stoi(portno));
+
+    /*  Combining the sending string  & Get args for sendto() function*/
+    char buff[2048];
+    bzero(buff, 2048);
+  cout<<"\t p_chat->leader \t"<< p_chat->leader<<endl;
+    vector<string> myvec = split(p_chat->leader, ":");
+    string ip_addr_me = myvec.front();
+    string portno_me = myvec.back();
+    int currtime = getLocalTime();  
+    msgpack msg_pack(ip_addr_me, stoi(portno_me), p_chat->my_name, currtime, 1, msg);
+    string msg_sent = serialize(msg_pack);
+    strcpy(buff, msg_sent.c_str());
+
+    p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
+    if (p_chat->num < 0) {
+      perror("sendto returns value < 0 \n");
+    }
+    cout<<"Successfully broadcast the message!\n"<<endl;
+  }
+}
+
 void *recv_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
-  
+  if(p_chat->is_leader == true){
+    bzero((char *) &(p_chat->other), p_chat->len);
+    char buff[2048];
+    bzero(buff, 2048);
+    p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
+    if (p_chat->num < 0) {
+      perror("recvfrom returns value < 0 \n");
+    }
+    string buff_str = buff;
+    broadcast(p_chat, buff_str);    
+    cout<<"Successfully broadcast received msg:\n"<<buff<<endl;    
+  }else{
+    bzero((char *) &(p_chat->other), p_chat->len);
+    char buff[2048];
+    bzero(buff, 2048);
+    p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
+    if (p_chat->num < 0) {
+      perror("recvfrom returns value < 0 \n");
+    }
+    cout<<"Message from server:\t"<<buff<<endl;
+  }
 
   pthread_exit(NULL);
 }
 
+
 void *send_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
+  if(p_chat->is_leader == true){
 
-  
+    cout<<"What's on your mind?(You are the leader)"<<endl;
+    string line;
+    getline(cin, line);
+    broadcast( p_chat, line);
+    cout<<"Successfully broadcast leader's msg:\n"<<endl;    
+
+  }else{
+
+    cout<<"What's on your mind?(You are not the leader)"<<endl;
+    string line;
+    getline(cin, line);
+
+    /*  Combining the sending string  & Get args for sendto() function*/
+    char buff[2048];
+    bzero(buff, 2048);
+    vector<string> myvec = split(p_chat->my_addr, ":");
+    string ip_addr_me = myvec.front();
+    string portno_me = myvec.back();
+    int currtime = getLocalTime(); 
+    msgpack msg_pack(ip_addr_me, stoi(portno_me), p_chat->my_name, currtime, 1, line);
+    string msg_sent = serialize(msg_pack);
+    strcpy(buff, msg_sent.c_str());
+
+    p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
+    if (p_chat->num < 0) {
+      perror("sendto returns value < 0 \n");
+    }   
+  }  
   pthread_exit(NULL);
 }
 
