@@ -371,6 +371,17 @@ void *send_msgs(void *threadarg) {
   pthread_exit(NULL);
 }
 
+void *check_heartbeat(void *threadarg) {
+  dchat *p_chat = (dchat *) threadarg;
+
+  if (p_chat->is_leader == true) {
+    // add heartbeat
+
+  }
+  pthread_exit(NULL);
+}
+
+
 int main(int argc, char *argv[]) {
 	if (argc != 2 && argc != 3)
 	{
@@ -383,12 +394,14 @@ int main(int argc, char *argv[]) {
 	else {
 		p_dchat->join_a_group(string(argv[1]), string(argv[2]));
 	}
-  pthread_t threads[2];
+  pthread_t threads[3];
 
   pthread_create(&threads[0], NULL, recv_msgs, (void *)p_dchat);
   pthread_create(&threads[1], NULL, send_msgs, (void *)p_dchat);
+  pthread_create(&threads[2], NULL, send_msgs, (void *)p_dchat);
   
   pthread_join(threads[0], NULL);
   pthread_join(threads[1], NULL);
+  pthread_join(threads[2], NULL);
 	return 0;
 }
