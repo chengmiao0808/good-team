@@ -10,6 +10,25 @@ void error(string err) {
   exit(1);
 }
 
+void broadcast(dchat *p_chat, string msg) {
+  for (it_type iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
+    vector<string> vec = split(iter->first, ":");
+    string ip_addr = vec_me.front();
+    string portno = vec_me.back();
+
+    bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
+    p_chat->other.sin_family = AF_INET;
+    p_chat->other.sin_addr.s_addr = inet_addr(ip_addr.c_str());
+    p_chat->other.sin_port = htons(stoi(portno));
+
+     p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
+    if (p_chat->num < 0) {
+      return p_chat->num;
+    }
+
+  }
+}
+
 int start_a_leader(dchat *p_chat, string l_addr, string l_name) {
   cout<<"start_a_leader is called!"<<endl;
   cout<<l_addr<<endl;
