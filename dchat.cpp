@@ -95,9 +95,11 @@ cout<<"Received the msg from the leader: \t"<<buff<<endl;
   string msg_recv = buff;
   msg_pack = deserialize(msg_recv);
   string members = msg_pack.msg;
+cout<<"memebers: "<<members<<endl; // Problem here! should not be empty
   vector<string> vec = split(members, "\t");
   p_chat->leader = vec.back();
   vec.pop_back();
+cout<<"HERE"<<endl;
   while (!vec.empty()) {
     string key = vec.back();
     vec.pop_back();
@@ -105,6 +107,7 @@ cout<<"Received the msg from the leader: \t"<<buff<<endl;
     vec.pop_back();
     p_chat->all_members_list[key] = val;
   }
+cout<<"HERE"<<endl;
 
   return 0;
 }
@@ -149,6 +152,8 @@ string dchat::get_ip_address() {
 void dchat::start_new_group(string l_name) {
   cout<<"dchat::start_new_group is called!\n";
 	is_leader = true;
+  my_name = l_name;
+
   while (1) {
     srand((unsigned)time(NULL));
     int portno = rand() % 2000 + 8000;
@@ -167,6 +172,7 @@ void dchat::start_new_group(string l_name) {
 
 void dchat::join_a_group(string m_name, string l_addr) {
 	is_leader = false;
+  my_name = m_name;
   while (1) {
     srand((unsigned)time(NULL));
     int portno = rand() % 2000 + 8000;
@@ -260,7 +266,7 @@ void *recv_msgs(void *threadarg) {
       p_chat->other.sin_addr.s_addr = inet_addr(ip_addr.c_str());
       p_chat->other.sin_port = htons(stoi(portno));
 //SHOULD SEND BACK MEMBER LIST
-      msgpack msg_pack(ip_addr_me, stoi(portno_me), p_chat->my_name, currtime, 0, "sddssksdjls  lin");
+      msgpack msg_pack(ip_addr_me, stoi(portno_me), p_chat->my_name, currtime, 0, "sddssksdjls \tlin");
       string msg_sent = serialize(msg_pack);
       strcpy(nbuff, msg_sent.c_str());
       cout<<nbuff<<endl;
