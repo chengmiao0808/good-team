@@ -241,6 +241,7 @@ void *recv_msgs(void *threadarg) {
 
         // Receive JOIN THE GROUP
         p_chat->all_members_list[msg_pack.IP+":"+ to_string(msg_pack.port)] = msg_pack.username;
+        p_chat->last_alive[msg_pack.IP+":"+ to_string(msg_pack.port)] = msg_pack.t_time;
         //cout<<"A NEW MEMBER\t"<<p_chat->all_members_list[msg_pack.IP+":"+ to_string(msg_pack.port)]<< endl;
         char nbuff[2048];
         bzero(nbuff, 2048);
@@ -371,6 +372,24 @@ void *send_msgs(void *threadarg) {
     //mtx.unlock();
   }
   pthread_exit(NULL);
+}
+
+void *check_alive(void* threadarg) {
+  dchat *p_chat = (dchat *) threadarg;
+  while (1) {
+    usleep(1000000);
+    for (auto iter = p_chat->last_alive.begin(); iter != p_chat->last_alive.end(); iter++) {
+      if（getCurrentTime() - it->second > 2) {
+        string ip_and_port = it->first;
+        string name = all_members_list[ip_and_port];
+        all_members_list.erase(ip_and_port);
+        last_alive.erase(ip_and_port);
+
+        string msg = "NOTICE " + name + " left the chat or crashed";
+        broadcast(p_chat, msg); 
+      }
+    }
+  }
 }
 
 int main(int argc, char *argv[]) {
