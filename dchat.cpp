@@ -88,6 +88,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
   if (p_chat->num < 0) {
     return p_chat->num;
   }
+cout<<"Received the msg from the leader: \t"<<buff<<endl;   
   string msg_recv = buff;
   msg_pack = deserialize(msg_recv);
   string members = msg_pack.msg;
@@ -227,6 +228,7 @@ void *recv_msgs(void *threadarg) {
     char buff[2048];
     bzero(buff, 2048);
     p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
+    cout<<"Received the msg: \t"<<buff<<endl;    
     if (p_chat->num < 0){
       perror("recvfrom returns value < 0 \n");
       pthread_exit(NULL);
@@ -236,6 +238,28 @@ void *recv_msgs(void *threadarg) {
     if(msg_pack.command == 1){
 
       // JOIN THE GROUP
+      p_chat->all_members_list[msg_pack.IP+":"+ to_string(msg_pack.port)] = msg_pack.username;
+      cout<<"A NEW MEMBER"<<p_chat->all_members_list[msg_pack.IP+":"+ to_string(msg_pack.port)]<< endl;
+      char nbuff[2048];
+      bzero(nbuff, 2048);
+    cout<<"\t p_chat->leader \t"<< p_chat->leader<<endl;
+      vector<string> myvec = split(p_chat->leader, ":");
+      string ip_addr_me = myvec.front();
+      string portno_me = myvec.back();
+      int currtime = getLocalTime();  
+
+//SHOULD SEND BACK MEMBER LIST
+      msgpack msg_pack(ip_addr_me, stoi(portno_me), p_chat->my_name, currtime, 0, "ACCEPT JOIN");
+      string msg_sent = serialize(msg_pack);
+      strcpy(nbuff, msg_sent.c_str());
+      cout<<nbuff<<endl;
+
+// Have a problem HERE
+      p_chat->num = sendto(p_chat->sock, nbuff, strlen(nbuff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
+      if (p_chat->num < 0) {
+        perror("sendto returns value < 0 \n");
+      }
+
 
     }else{
       string buff_str = buff;
