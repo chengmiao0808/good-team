@@ -379,8 +379,8 @@ void *check_alive(void* threadarg) {
   while (1) {
     usleep(1000000);
     for (auto iter = p_chat->last_alive.begin(); iter != p_chat->last_alive.end(); iter++) {
-      if（getCurrentTime() - it->second > 2) {
-        string ip_and_port = it->first;
+      if（getCurrentTime() - iter->second > 2) {
+        string ip_and_port = iter->first;
         string name = all_members_list[ip_and_port];
         all_members_list.erase(ip_and_port);
         last_alive.erase(ip_and_port);
