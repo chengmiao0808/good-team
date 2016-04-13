@@ -91,11 +91,11 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
   if (p_chat->num < 0) {
     return p_chat->num;
   }
-cout<<"Received the msg from the leader: \t"<<buff<<endl;   
+//cout<<"Received the msg from the leader: \t"<<buff<<endl;   
   string msg_recv = buff;
   msg_pack = deserialize(msg_recv);
   string members = msg_pack.msg;
-cout<<"memebers: "<<members<<endl; // Problem here! should not be empty
+//cout<<"memebers: "<<members<<endl; // Problem here! should not be empty
   vector<string> vec = split(members, "\t");
   p_chat->leader = vec[0];
   for(int index = 1; index<vec.size(); index+=2) {
@@ -193,8 +193,8 @@ void dchat::join_a_group(string m_name, string l_addr) {
 void broadcast(dchat *p_chat, string msg) {
 
   for (auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
-  cout<<"\t this iter: \t"<< iter->first << endl;
-    if(iter->first == p_chat->leader) continue;
+  //cout<<"\t this iter: \t"<< iter->first << endl;
+    //if(iter->first == p_chat->leader) continue; //dont send to leader herself
 
     vector<string> vec_other = split(iter->first, ":");
     string ip_addr = vec_other.front();
@@ -208,7 +208,7 @@ void broadcast(dchat *p_chat, string msg) {
     /*  Combining the sending string  & Get args for sendto() function*/
     char buff[2048];
     bzero(buff, 2048);
-  cout<<"\t p_chat->leader \t"<< p_chat->leader<<endl;
+  //cout<<"\t p_chat->leader \t"<< p_chat->leader<<endl;
     vector<string> myvec = split(p_chat->leader, ":");
     string ip_addr_me = myvec.front();
     string portno_me = myvec.back();
@@ -234,7 +234,7 @@ void *recv_msgs(void *threadarg) {
       char buff[2048];
       bzero(buff, 2048);
       p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
-      cout<<"Received the msg: \t"<<buff<<endl;    
+      //cout<<"Received the msg: \t"<<buff<<endl;    
       if (p_chat->num < 0){
         perror("recvfrom returns value < 0 \n");
         pthread_exit(NULL);
@@ -245,10 +245,10 @@ void *recv_msgs(void *threadarg) {
 
         // Receive JOIN THE GROUP
         p_chat->all_members_list[msg_pack.IP+":"+ to_string(msg_pack.port)] = msg_pack.username;
-        cout<<"A NEW MEMBER\t"<<p_chat->all_members_list[msg_pack.IP+":"+ to_string(msg_pack.port)]<< endl;
+        //cout<<"A NEW MEMBER\t"<<p_chat->all_members_list[msg_pack.IP+":"+ to_string(msg_pack.port)]<< endl;
         char nbuff[2048];
         bzero(nbuff, 2048);
-      //cout<<"\t p_chat->leader \t"<< p_chat->leader<<endl;
+        //cout<<"\t p_chat->leader \t"<< p_chat->leader<<endl;
         vector<string> myvec = split(p_chat->leader, ":");
         string ip_addr_me = myvec.front();
         string portno_me = myvec.back();
@@ -262,28 +262,34 @@ void *recv_msgs(void *threadarg) {
         p_chat->other.sin_addr.s_addr = inet_addr(ip_addr.c_str());
         p_chat->other.sin_port = htons(stoi(portno));
 
-        /**/
+        /* Create the member list */
         string memeber_list = ip_addr_me +":"+ portno_me;
         for(auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++ ){
           memeber_list += "\t" + iter->first;
           memeber_list+= "\t" + iter->second;
         }     
 
+        string newmem_name =msg_pack.username;
+        string newmem_IP = msg_pack.IP;
+        string newmem_port = to_string(msg_pack.port);
         msgpack msg_pack(ip_addr_me, stoi(portno_me), p_chat->my_name, currtime, 0, memeber_list);
         string msg_sent = serialize(msg_pack);
         strcpy(nbuff, msg_sent.c_str());
-        cout<<nbuff<<endl;
+        //cout<<nbuff<<endl;
 
         p_chat->num = sendto(p_chat->sock, nbuff, strlen(nbuff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
         if (p_chat->num < 0) {
           perror("sendto returns value < 0 \n");
         }
+        string buff_str = "NOTICE "+ newmem_name +" joined on "+ newmem_IP +":"+ newmem_port;
+        broadcast(p_chat, buff_str);         
 
-
-      }else{
-        string buff_str = buff;
+      }else if( msg_pack.username != p_chat->my_name){ 
+        string buff_str = msg_pack.msg;
         broadcast(p_chat, buff_str);    
-        cout<<"Successfully broadcast received msg: \t"<<buff<<endl;    
+        //cout<<"Successfully broadcast received msg: \t"<<buff<<endl;    
+      }else{
+        cout<<msg_pack.msg<<endl;
       }
 
     }else{ // regular memeber
@@ -317,7 +323,7 @@ void *recv_msgs(void *threadarg) {
         }
 
       }else{
-        cout<< msg_pack.username<<":\t"<<msg_pack.msg<<endl;
+        cout<<msg_pack.msg<<endl;
         //cout<<"Message from server:\t"<<buff<<endl; 
       }    
 
@@ -335,17 +341,19 @@ void *send_msgs(void *threadarg) {
     //mtx.lock();
     if(p_chat->is_leader == true){
 
-      cout<<"What's on your mind?(You are the leader)"<<endl;
+      //cout<<"What's on your mind?(You are the leader)"<<endl;
       string line;
       getline(cin, line);
+      line = p_chat->my_name + ":\t" + line;
       broadcast( p_chat, line);
-      cout<<"Successfully broadcast leader's msg\n"<<endl;    
+      //cout<<"Successfully broadcast leader's msg\n"<<endl;    
 
     }else{// non-leader member
 
-      cout<<"What's on your mind?(You are not the leader)"<<endl;
+      //cout<<"What's on your mind?(You are not the leader)"<<endl;
       string line;
       getline(cin, line);
+      line = p_chat->my_name + ":\t" + line;
 
       vector<string> vec_other = split(p_chat->leader, ":");
       string ip_addr_other = vec_other.front();
