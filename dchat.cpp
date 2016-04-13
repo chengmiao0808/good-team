@@ -373,6 +373,31 @@ void *send_msgs(void *threadarg) {
   pthread_exit(NULL);
 }
 
+void *send_heart_beat(void *threadarg) {
+  dchat *p_chat = (dchat *) threadarg;
+
+  while (true) {
+    usleep(1000000);
+
+    char buff[2048];
+    bzero(buff, 2048);
+
+    vector<string> myvec = split(p_chat->leader, ":");
+    string ip_addr_me = myvec.front();
+    string portno_me = myvec.back();
+    int currtime = getLocalTime();  
+    msgpack msg_pack(ip_addr_me, stoi(portno_me), p_chat->my_name, currtime, 2, "N/A");
+    string msg_sent = serialize(msg_pack);
+    strcpy(buff, msg_sent.c_str());
+
+    p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
+    if (p_chat->num < 0) {
+      error("Error with sendto!\n");
+    }
+  }
+  pthread_exit(NULL);
+}
+
 int main(int argc, char *argv[]) {
 	if (argc != 2 && argc != 3)
 	{
