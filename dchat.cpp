@@ -194,6 +194,7 @@ void broadcast(dchat *p_chat, string msg) {
 
   for (auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
   cout<<"\t this iter: \t"<< iter->first << endl;
+    if(iter->first == p_chat->leader) continue;
 
     vector<string> vec_other = split(iter->first, ":");
     string ip_addr = vec_other.front();
@@ -220,109 +221,109 @@ void broadcast(dchat *p_chat, string msg) {
     if (p_chat->num < 0) {
       perror("sendto returns value < 0 \n");
     }
-    cout<<"broadcasted the message!\n"<<endl;
   }
 }
 
 void *recv_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
 
-  //mtx.lock();
-  if(p_chat->is_leader == true){
-    bzero((char *) &(p_chat->other), p_chat->len);
-    char buff[2048];
-    bzero(buff, 2048);
-    p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
-    cout<<"Received the msg: \t"<<buff<<endl;    
-    if (p_chat->num < 0){
-      perror("recvfrom returns value < 0 \n");
-      pthread_exit(NULL);
-    }
-    /*  Unpacked the msg  */
-    msgpack msg_pack = deserialize(buff);
-    if(msg_pack.command == 1){
-
-      // JOIN THE GROUP
-      p_chat->all_members_list[msg_pack.IP+":"+ to_string(msg_pack.port)] = msg_pack.username;
-      cout<<"A NEW MEMBER"<<p_chat->all_members_list[msg_pack.IP+":"+ to_string(msg_pack.port)]<< endl;
-      char nbuff[2048];
-      bzero(nbuff, 2048);
-    cout<<"\t p_chat->leader \t"<< p_chat->leader<<endl;
-      vector<string> myvec = split(p_chat->leader, ":");
-      string ip_addr_me = myvec.front();
-      string portno_me = myvec.back();
-      int currtime = getLocalTime();  
-
-
-      string ip_addr = msg_pack.IP;
-      string portno = to_string(msg_pack.port);
-      bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
-      p_chat->other.sin_family = AF_INET;
-      p_chat->other.sin_addr.s_addr = inet_addr(ip_addr.c_str());
-      p_chat->other.sin_port = htons(stoi(portno));
-
-//SHOULD SEND BACK MEMBER LIST
-      string memeber_list = ip_addr_me +":"+ portno_me;
-      for(auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++ ){
-        memeber_list += "\t" + iter->first;
-        memeber_list+= "\t" + iter->second;
-      }     
-
-      msgpack msg_pack(ip_addr_me, stoi(portno_me), p_chat->my_name, currtime, 0, memeber_list);
-      string msg_sent = serialize(msg_pack);
-      strcpy(nbuff, msg_sent.c_str());
-      cout<<nbuff<<endl;
-
-      p_chat->num = sendto(p_chat->sock, nbuff, strlen(nbuff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
-      if (p_chat->num < 0) {
-        perror("sendto returns value < 0 \n");
-      }
-
-
-    }else{
-      string buff_str = buff;
-      broadcast(p_chat, buff_str);    
-      cout<<"Successfully broadcast received msg: \t"<<buff<<endl;    
-    }
-
-  }else{ // regular memeber
-    bzero((char *) &(p_chat->other), p_chat->len);
-    char buff[2048];
-    bzero(buff, 2048);
-    p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
-    if (p_chat->num < 0) {
-      perror("recvfrom returns value < 0 \n");
-      pthread_exit(NULL);
-    }
-    /*  Unpacked the msg  */
-    msgpack msg_pack = deserialize(buff);
-    
-    if(msg_pack.command == 1){ 
-    /* directly forward the join request to the leader */
-      vector<string> vec_other = split(p_chat->leader, ":");
-      string ip_addr_other = vec_other.front();
-      string portno_other = vec_other.back();
-      p_chat->is_leader = false;
-
-      bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
-      p_chat->other.sin_family = AF_INET;
-      p_chat->other.sin_addr.s_addr = inet_addr(ip_addr_other.c_str());
-      p_chat->other.sin_port = htons(stoi(portno_other));
-
-      p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
-      if (p_chat->num < 0) {
-        perror("sendto returns value < 0 \n");
+  for(;;){
+    //mtx.lock();
+    if(p_chat->is_leader == true){
+      bzero((char *) &(p_chat->other), p_chat->len);
+      char buff[2048];
+      bzero(buff, 2048);
+      p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
+      cout<<"Received the msg: \t"<<buff<<endl;    
+      if (p_chat->num < 0){
+        perror("recvfrom returns value < 0 \n");
         pthread_exit(NULL);
       }
+      /*  Unpacked the msg  */
+      msgpack msg_pack = deserialize(buff);
+      if(msg_pack.command == 1){
 
-    }else{
-      cout<<"Message from server:\t"<<buff<<endl; 
-    }    
+        // Receive JOIN THE GROUP
+        p_chat->all_members_list[msg_pack.IP+":"+ to_string(msg_pack.port)] = msg_pack.username;
+        cout<<"A NEW MEMBER\t"<<p_chat->all_members_list[msg_pack.IP+":"+ to_string(msg_pack.port)]<< endl;
+        char nbuff[2048];
+        bzero(nbuff, 2048);
+      //cout<<"\t p_chat->leader \t"<< p_chat->leader<<endl;
+        vector<string> myvec = split(p_chat->leader, ":");
+        string ip_addr_me = myvec.front();
+        string portno_me = myvec.back();
+        int currtime = getLocalTime();  
 
+
+        string ip_addr = msg_pack.IP;
+        string portno = to_string(msg_pack.port);
+        bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
+        p_chat->other.sin_family = AF_INET;
+        p_chat->other.sin_addr.s_addr = inet_addr(ip_addr.c_str());
+        p_chat->other.sin_port = htons(stoi(portno));
+
+        /**/
+        string memeber_list = ip_addr_me +":"+ portno_me;
+        for(auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++ ){
+          memeber_list += "\t" + iter->first;
+          memeber_list+= "\t" + iter->second;
+        }     
+
+        msgpack msg_pack(ip_addr_me, stoi(portno_me), p_chat->my_name, currtime, 0, memeber_list);
+        string msg_sent = serialize(msg_pack);
+        strcpy(nbuff, msg_sent.c_str());
+        cout<<nbuff<<endl;
+
+        p_chat->num = sendto(p_chat->sock, nbuff, strlen(nbuff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
+        if (p_chat->num < 0) {
+          perror("sendto returns value < 0 \n");
+        }
+
+
+      }else{
+        string buff_str = buff;
+        broadcast(p_chat, buff_str);    
+        cout<<"Successfully broadcast received msg: \t"<<buff<<endl;    
+      }
+
+    }else{ // regular memeber
+      bzero((char *) &(p_chat->other), p_chat->len);
+      char buff[2048];
+      bzero(buff, 2048);
+      p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
+      if (p_chat->num < 0) {
+        perror("recvfrom returns value < 0 \n");
+        pthread_exit(NULL);
+      }
+      /*  Unpacked the msg  */
+      msgpack msg_pack = deserialize(buff);
+      
+      if(msg_pack.command == 1){ 
+      /* directly forward the join request to the leader */
+        vector<string> vec_other = split(p_chat->leader, ":");
+        string ip_addr_other = vec_other.front();
+        string portno_other = vec_other.back();
+        p_chat->is_leader = false;
+
+        bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
+        p_chat->other.sin_family = AF_INET;
+        p_chat->other.sin_addr.s_addr = inet_addr(ip_addr_other.c_str());
+        p_chat->other.sin_port = htons(stoi(portno_other));
+
+        p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
+        if (p_chat->num < 0) {
+          perror("sendto returns value < 0 \n");
+          pthread_exit(NULL);
+        }
+
+      }else{
+        cout<< msg_pack.username<<":\t"<<msg_pack.msg<<endl;
+        //cout<<"Message from server:\t"<<buff<<endl; 
+      }    
+
+    }
+    //mtx.unlock();
   }
-  //mtx.unlock();
-
-
   pthread_exit(NULL);
 }
 
@@ -330,50 +331,74 @@ void *recv_msgs(void *threadarg) {
 void *send_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
 
-  //mtx.lock();
-  if(p_chat->is_leader == true){
+  for(;;){
+    //mtx.lock();
+    if(p_chat->is_leader == true){
 
-    cout<<"What's on your mind?(You are the leader)"<<endl;
-    string line;
-    getline(cin, line);
-    broadcast( p_chat, line);
-    cout<<"Successfully broadcast leader's msg\n"<<endl;    
+      cout<<"What's on your mind?(You are the leader)"<<endl;
+      string line;
+      getline(cin, line);
+      broadcast( p_chat, line);
+      cout<<"Successfully broadcast leader's msg\n"<<endl;    
 
-  }else{// non-leader member
+    }else{// non-leader member
 
-    cout<<"What's on your mind?(You are not the leader)"<<endl;
-    string line;
-    getline(cin, line);
+      cout<<"What's on your mind?(You are not the leader)"<<endl;
+      string line;
+      getline(cin, line);
 
-    /*  Combining the sending string  & Get args for sendto() function*/
-    vector<string> vec_l = split(p_chat->leader, ":");
-    string ip_addr_l = vec_l.front();
-    string portno_l = vec_l.back();
-cout<<"HERE"<< ip_addr_l << "\t" << portno_l<<endl;
+      vector<string> vec_other = split(p_chat->leader, ":");
+      string ip_addr_other = vec_other.front();
+      string portno_other = vec_other.back();
 
-    bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
-    p_chat->other.sin_family = AF_INET;
-    p_chat->other.sin_addr.s_addr = inet_addr(ip_addr_l.c_str());
-    p_chat->other.sin_port = htons(stoi(portno_l));
-      
-    char buff[2048];
-    bzero(buff, 2048);
-    vector<string> myvec = split(p_chat->my_addr, ":");
-    string ip_addr_me = myvec.front();
-    string portno_me = myvec.back();
-    int currtime = getLocalTime(); 
-    msgpack msg_pack(ip_addr_me, stoi(portno_me), p_chat->my_name, currtime, 0, line);
-    string msg_sent = serialize(msg_pack);
-    strcpy(buff, msg_sent.c_str());
-cout<<buff<<endl;
-    p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
-    if (p_chat->num < 0) {
-      perror("sendto returns value < 0 \n");
-      pthread_exit(NULL);
-    }   
+
+      bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
+      p_chat->other.sin_family = AF_INET;
+      p_chat->other.sin_addr.s_addr = inet_addr(ip_addr_other.c_str());
+      p_chat->other.sin_port = htons(stoi(portno_other));
+
+      char buff[2048];
+      bzero(buff, 2048);
+      vector<string> myvec = split(p_chat->my_addr, ":");
+      string ip_addr_me = myvec.front();
+      string portno_me = myvec.back();
+      int currtime = getLocalTime(); 
+      msgpack msg_pack(ip_addr_me, stoi(portno_me), p_chat->my_name, currtime, 0, line);
+      string msg_sent = serialize(msg_pack);
+      strcpy(buff, msg_sent.c_str());
+
+      p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
+
+
+      /*  Combining the sending string  & Get args for sendto() function*/
+  //     vector<string> vec_l = split(p_chat->leader, ":");
+  //     string ip_addr_l = vec_l.front();
+  //     string portno_l = vec_l.back();
+  // cout<<"HERE"<< ip_addr_l << "\t" << portno_l<<endl;
+
+  //     bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
+  //     p_chat->other.sin_family = AF_INET;
+  //     p_chat->other.sin_addr.s_addr = inet_addr(ip_addr_l.c_str());
+  //     p_chat->other.sin_port = htons(stoi(portno_l));
+
+  //     char buff[2048];
+  //     bzero(buff, 2048);
+  //     vector<string> myvec = split(p_chat->my_addr, ":");
+  //     string ip_addr_me = myvec.front();
+  //     string portno_me = myvec.back();
+  //     int currtime = getLocalTime(); 
+  //     msgpack msg_pack(ip_addr_me, stoi(portno_me), p_chat->my_name, currtime, 0, line);
+  //     string msg_sent = serialize(msg_pack);
+  //     strcpy(buff, msg_sent.c_str());
+
+  //     p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
+  //     if (p_chat->num < 0) {
+  //       perror("sendto returns value < 0 \n");
+  //       pthread_exit(NULL);
+  //     }   
+    }
+    //mtx.unlock();
   }
-  //mtx.unlock();
-
   pthread_exit(NULL);
 }
 
