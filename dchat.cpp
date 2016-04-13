@@ -278,7 +278,7 @@ void *recv_msgs(void *threadarg) {
           error("Error with sendto!\n");
         }
         string buff_str = "NOTICE "+ newmem_name +" joined on "+ newmem_IP +":"+ newmem_port;
-        broadcast(p_chat, buff_str);         
+        broadcast(p_chat, buff_str);        
 
       } else if (msg_pack.command == 2) {//heartbeat
         string ip_and_port = msg_pack.IP + ":" + to_string(msg_pack.port);
@@ -379,16 +379,26 @@ void *send_msgs(void *threadarg) {
 
 void *send_heart_beat(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
-
+  //cout << "HERE" << endl;
   while (true) {
     usleep(1000000);
 
     char buff[2048];
     bzero(buff, 2048);
 
-    vector<string> myvec = split(p_chat->leader, ":");
+    vector<string> myvec = split(p_chat->my_addr, ":");
     string ip_addr_me = myvec.front();
     string portno_me = myvec.back();
+
+    vector<string> vec_other = split(p_chat->leader, ":");
+    string ip_addr_other = vec_other.front();
+    string portno_other = vec_other.back();
+
+    bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
+    p_chat->other.sin_family = AF_INET;
+    p_chat->other.sin_addr.s_addr = inet_addr(ip_addr_other.c_str());
+    p_chat->other.sin_port = htons(stoi(portno_other));
+
     int currtime = getLocalTime();  
     msgpack msg_pack(ip_addr_me, stoi(portno_me), p_chat->my_name, currtime, 2, "N/A");
     string msg_sent = serialize(msg_pack);
@@ -404,18 +414,18 @@ void *send_heart_beat(void *threadarg) {
 
 void *check_alive(void* threadarg) {
   dchat *p_chat = (dchat *) threadarg;
-
   while (1) {
 
-    for (auto iter = p_chat->last_alive.begin(); iter != p_chat->last_alive.end(); iter++) {
+    for (auto iter = p_chat->last_alive.begin(); iter != p_chat->last_alive.end(); ) {
       if (getLocalTime() - (iter->second) > 2) {
-        string ip_and_port = iter->first;
-        string name = p_chat->all_members_list[ip_and_port];
-        p_chat->all_members_list.erase(ip_and_port);
-        p_chat->last_alive.erase(ip_and_port);
+        string name = p_chat->all_members_list[iter->first];
+        p_chat->all_members_list.erase(iter->first);
+        p_chat->last_alive.erase(iter++);
 
         string msg = "NOTICE " + name + " left the chat or crashed";
-        broadcast(p_chat, msg); 
+        broadcast(p_chat, msg);
+      } else {
+        ++iter;
       }
     }
   }
