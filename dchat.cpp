@@ -266,7 +266,13 @@ void *recv_msgs(void *threadarg) {
       p_chat->other.sin_addr.s_addr = inet_addr(ip_addr.c_str());
       p_chat->other.sin_port = htons(stoi(portno));
 //SHOULD SEND BACK MEMBER LIST
-      msgpack msg_pack(ip_addr_me, stoi(portno_me), p_chat->my_name, currtime, 0, "sddssksdjls \tlin");
+      string memeber_list = ip_addr_me +":"+ portno_me;
+      for(auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++ ){
+        memeber_list += "\t" + iter->first;
+        memeber_list+= "\t" + iter->second;
+      }     
+
+      msgpack msg_pack(ip_addr_me, stoi(portno_me), p_chat->my_name, currtime, 0, memeber_list);
       string msg_sent = serialize(msg_pack);
       strcpy(nbuff, msg_sent.c_str());
       cout<<nbuff<<endl;
