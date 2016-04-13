@@ -35,6 +35,8 @@ public:
 	string my_addr;
 	string my_name;
 	bool is_leader;
+
+	map<string, int> last_alive; //<"ip_address:port", "last_alive_time">
 	
 
 	int sock, sock2, num, len;

@@ -385,12 +385,19 @@ int main(int argc, char *argv[]) {
 	else {
 		p_dchat->join_a_group(string(argv[1]), string(argv[2]));
 	}
-  pthread_t threads[2];
+  pthread_t threads[3];
 
   pthread_create(&threads[0], NULL, recv_msgs, (void *)p_dchat);
   pthread_create(&threads[1], NULL, send_msgs, (void *)p_dchat);
+
+  if (p_dchat->is_leader) {
+    pthread_create(&threads[2], NULL, check_alive, (void *)p_dchat);
+  } else {
+    pthread_create(&threads[2], NULL, send_heart_beat, (void *)p_dchat);
+  }
   
   pthread_join(threads[0], NULL);
   pthread_join(threads[1], NULL);
+  pthread_join(threads[2], NULL);
 	return 0;
 }
