@@ -280,13 +280,16 @@ void *recv_msgs(void *threadarg) {
         string buff_str = "NOTICE "+ newmem_name +" joined on "+ newmem_IP +":"+ newmem_port;
         broadcast(p_chat, buff_str);         
 
-        } else if (msg_pack.username != p_chat->my_name) { 
-          string buff_str = msg_pack.msg;
-          broadcast(p_chat, buff_str);    
+      } else if (msg_pack.command == 2) {//heartbeat
+        string ip_and_port = msg_pack.IP + ":" + to_string(msg_pack.port);
+        p_chat->last_alive[ip_and_port] = msg_pack.t_time;
+      } else if (msg_pack.username != p_chat->my_name) { 
+        string buff_str = msg_pack.msg;
+        broadcast(p_chat, buff_str);    
         //cout<<"Successfully broadcast received msg: \t"<<buff<<endl;    
-        } else {
-          cout<<msg_pack.msg<<endl;
-        }
+      } else {
+        cout<<msg_pack.msg<<endl;
+      }
 
       } else { // regular memeber
         bzero((char *) &(p_chat->other), p_chat->len);
