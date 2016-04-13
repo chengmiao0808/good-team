@@ -25,7 +25,7 @@ int start_a_leader(dchat *p_chat, string l_addr, string l_name) {
 
   p_chat->sock = socket(AF_INET, SOCK_DGRAM, 0); 
   if (p_chat->sock < 0) {
-    error("Error with socket!\n");
+    return p_chat->sock;
   }
 
   //initialize my information
@@ -48,7 +48,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
 
   p_chat->sock = socket(AF_INET, SOCK_DGRAM, 0); 
   if (p_chat->sock < 0) {
-    error("Error with socket!\n");
+    return p_chat->sock;
   }
 
   bzero((char *) &(p_chat->me), sizeof(p_chat->me)); 
@@ -81,7 +81,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
 
   p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
   if (p_chat->num < 0) {
-    error("Error with sendto!\n");
+    return p_chat->num;
   }
 
   p_chat->len = sizeof(p_chat->other);
@@ -89,7 +89,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
   bzero(buff, 2048);
   p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
   if (p_chat->num < 0) {
-    error("Error with recvfrom!\n");
+    return p_chat->num;
   }
 cout<<"Received the msg from the leader: \t"<<buff<<endl;   
   string msg_recv = buff;
@@ -97,17 +97,12 @@ cout<<"Received the msg from the leader: \t"<<buff<<endl;
   string members = msg_pack.msg;
 cout<<"memebers: "<<members<<endl; // Problem here! should not be empty
   vector<string> vec = split(members, "\t");
-  p_chat->leader = vec.back();
-  vec.pop_back();
-cout<<"HERE"<<endl;
-  while (!vec.empty()) {
-    string key = vec.back();
-    vec.pop_back();
-    string val = vec.back();
-    vec.pop_back();
+  p_chat->leader = vec[0];
+  for(int index = 1; index<vec.size(); index+=2) {
+    string key = vec[index];
+    string val = vec[index+1];
     p_chat->all_members_list[key] = val;
   }
-cout<<"HERE"<<endl;
 
   return 0;
 }
@@ -265,6 +260,7 @@ void *recv_msgs(void *threadarg) {
       p_chat->other.sin_family = AF_INET;
       p_chat->other.sin_addr.s_addr = inet_addr(ip_addr.c_str());
       p_chat->other.sin_port = htons(stoi(portno));
+
 //SHOULD SEND BACK MEMBER LIST
       string memeber_list = ip_addr_me +":"+ portno_me;
       for(auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++ ){
@@ -350,6 +346,16 @@ void *send_msgs(void *threadarg) {
     getline(cin, line);
 
     /*  Combining the sending string  & Get args for sendto() function*/
+    vector<string> vec_l = split(p_chat->leader, ":");
+    string ip_addr_l = vec_l.front();
+    string portno_l = vec_l.back();
+cout<<"HERE"<< ip_addr_l << "\t" << portno_l<<endl;
+
+    bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
+    p_chat->other.sin_family = AF_INET;
+    p_chat->other.sin_addr.s_addr = inet_addr(ip_addr_l.c_str());
+    p_chat->other.sin_port = htons(stoi(portno_l));
+      
     char buff[2048];
     bzero(buff, 2048);
     vector<string> myvec = split(p_chat->my_addr, ":");
@@ -359,7 +365,7 @@ void *send_msgs(void *threadarg) {
     msgpack msg_pack(ip_addr_me, stoi(portno_me), p_chat->my_name, currtime, 0, line);
     string msg_sent = serialize(msg_pack);
     strcpy(buff, msg_sent.c_str());
-
+cout<<buff<<endl;
     p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
     if (p_chat->num < 0) {
       perror("sendto returns value < 0 \n");
@@ -370,17 +376,6 @@ void *send_msgs(void *threadarg) {
 
   pthread_exit(NULL);
 }
-
-void *check_heartbeat(void *threadarg) {
-  dchat *p_chat = (dchat *) threadarg;
-
-  if (p_chat->is_leader == true) {
-    // add heartbeat
-
-  }
-  pthread_exit(NULL);
-}
-
 
 int main(int argc, char *argv[]) {
 	if (argc != 2 && argc != 3)
@@ -394,14 +389,12 @@ int main(int argc, char *argv[]) {
 	else {
 		p_dchat->join_a_group(string(argv[1]), string(argv[2]));
 	}
-  pthread_t threads[3];
+  pthread_t threads[2];
 
   pthread_create(&threads[0], NULL, recv_msgs, (void *)p_dchat);
   pthread_create(&threads[1], NULL, send_msgs, (void *)p_dchat);
-  pthread_create(&threads[2], NULL, send_msgs, (void *)p_dchat);
   
   pthread_join(threads[0], NULL);
   pthread_join(threads[1], NULL);
-  pthread_join(threads[2], NULL);
 	return 0;
 }
