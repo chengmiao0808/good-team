@@ -10,20 +10,20 @@ void error(string err) {
   exit(1);
 }
 
-int start_a_leader(dchat *p_chat, string l_addr) {
+int start_a_leader(dchat *p_chat, string l_addr, string l_name) {
   cout<<"start_a_leader is called!"<<endl;
   cout<<l_addr<<endl;
   vector<string> vec = split(l_addr, ":");
   string ip_addr = vec.front();
   string portno = vec.back();
-  cout<<ip_addr<<endl;
-  cout<<portno<<endl;
+  
 
   p_chat->sock = socket(AF_INET, SOCK_DGRAM, 0); 
   if (p_chat->sock < 0) {
     return p_chat->sock;
   }
 
+  //initialize my information
   bzero((char *) &(p_chat->me), sizeof(p_chat->me)); 
   p_chat->me.sin_family = AF_INET;
   p_chat->me.sin_addr.s_addr = inet_addr(ip_addr.c_str());
@@ -59,6 +59,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
   vector<string> vec_other = split(l_addr, ":");
   string ip_addr_other = vec_other.front();
   string portno_other = vec_other.back();
+  p_chat->is_leader = false;
 
   bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
   p_chat->other.sin_family = AF_INET;
@@ -146,7 +147,7 @@ void dchat::start_new_group(string l_name) {
     srand((unsigned)time(NULL));
     int portno = rand() % 2000 + 8000;
     string l_addr = get_ip_address()+":"+to_string(portno);
-    int n = start_a_leader(this, l_addr);
+    int n = start_a_leader(this, l_addr, l_name);
     if (n == 0) {
       leader = l_addr;
       all_members_list[l_addr] = l_name;
@@ -183,12 +184,14 @@ void dchat::join_a_group(string m_name, string l_addr) {
 
 void *recv_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
+  
 
   pthread_exit(NULL);
 }
 
 void *send_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
+
   
   pthread_exit(NULL);
 }
