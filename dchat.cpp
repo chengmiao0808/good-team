@@ -169,7 +169,7 @@ void dchat::join_a_group(string m_name, string l_addr) {
     srand((unsigned)time(NULL));
     int portno = rand() % 2000 + 8000;
     string m_addr = get_ip_address()+":"+to_string(portno);
-    cout<<m_name<<" joining a new chat on "<<l_addr<<", listening on\n"<<m_addr<<"\n"
+    cout<<m_name<<" joining a new chat on "<<l_addr<<", listening on\n"<<m_addr<<"\n";
     int n = start_a_regular_member(this, l_addr, m_addr, m_name);
     if (n == 0) {
       my_addr = m_addr;
