@@ -405,11 +405,11 @@ void *check_alive(void* threadarg) {
   while (1) {
 
     for (auto iter = p_chat->last_alive.begin(); iter != p_chat->last_alive.end(); iter++) {
-      if（getLocalTime() - iter->second > 2) {
+      if (getLocalTime() - (iter->second) > 2) {
         string ip_and_port = iter->first;
-        string name = all_members_list[ip_and_port];
-        all_members_list.erase(ip_and_port);
-        last_alive.erase(ip_and_port);
+        string name = p_chat->all_members_list[ip_and_port];
+        p_chat->all_members_list.erase(ip_and_port);
+        p_chat->last_alive.erase(ip_and_port);
 
         string msg = "NOTICE " + name + " left the chat or crashed";
         broadcast(p_chat, msg); 
