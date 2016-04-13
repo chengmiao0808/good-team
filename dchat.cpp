@@ -25,7 +25,7 @@ int start_a_leader(dchat *p_chat, string l_addr, string l_name) {
 
   p_chat->sock = socket(AF_INET, SOCK_DGRAM, 0); 
   if (p_chat->sock < 0) {
-    return p_chat->sock;
+    error("Error with socket!\n");
   }
 
   //initialize my information
@@ -48,7 +48,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
 
   p_chat->sock = socket(AF_INET, SOCK_DGRAM, 0); 
   if (p_chat->sock < 0) {
-    return p_chat->sock;
+    error("Error with socket!\n");
   }
 
   bzero((char *) &(p_chat->me), sizeof(p_chat->me)); 
@@ -81,7 +81,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
 
   p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
   if (p_chat->num < 0) {
-    return p_chat->num;
+    error("Error with sendto!\n");
   }
 
   p_chat->len = sizeof(p_chat->other);
@@ -89,7 +89,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
   bzero(buff, 2048);
   p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
   if (p_chat->num < 0) {
-    return p_chat->num;
+    error("Error with recvfrom!\n");
   }
 cout<<"Received the msg from the leader: \t"<<buff<<endl;   
   string msg_recv = buff;
