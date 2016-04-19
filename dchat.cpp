@@ -205,6 +205,22 @@ void broadcast(dchat *p_chat, string msg) {
 void *recv_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
 
+  for (;;) {
+    char buff[2048];
+    bzero(buff, 2048);
+    p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
+    if (p_chat->num < 0){
+        error("Error with recvfrom!\n");
+    }
+    vector<string> message = split(buff);
+    
+
+  }
+}
+
+void *recv_msgs(void *threadarg) {
+  dchat *p_chat = (dchat *) threadarg;
+
   for(;;) {
     //mtx.lock();
     if (p_chat->is_leader == true) {
