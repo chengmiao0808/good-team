@@ -69,3 +69,10 @@ Server: main module, deal with the main logic (Miao Cheng and Yilun Fu)
 Election: deal with election when the leader crashes (Yilun Fu, Miao Cheng, and Yi-Ping Lin)
 Message: the struct which is sent via clients (Yilun Fu and Yi-Ping Lin)
 Utility: for some utility functions (Yilun Fu and Miao Cheng)
+
+Message:
+normal_message: when client sends a normal message. command#$time_stamp#$user_name#$message (command is normal)
+client_join_request: when client sends a join request to leader/other client. command#$time_stamp#$user_name#$my_ip:my_port (command is join_request)
+client_join_form: when leader receives a join request, multicast the join_form to current client. command#$time_stamp#$username#$client_ip:client_port (command is join_form)
+client_join_response: when leader receives a join request, send the msg back to the client who's joinning. command#$time_stamp#$leader_ip:leader_port#$first_member_ip:first_member_port#$first_member_name#$...(command is join_response)
+
