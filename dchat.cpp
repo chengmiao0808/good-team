@@ -82,29 +82,8 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
   if (n < 0)
     return n;
 
-  vector<string> vec_other = split(l_addr, ":");
-  string ip_addr_other = vec_other.front();
-  string portno_other = vec_other.back();
-  p_chat->is_leader = false;
-
-  bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
-  p_chat->other.sin_family = AF_INET;
-  p_chat->other.sin_addr.s_addr = inet_addr(ip_addr_other.c_str());
-  p_chat->other.sin_port = htons(stoi(portno_other));
-
-  char buff[2048];
-  bzero(buff, 2048);
-
-  int currtime = getLocalTime();  //get current time with utility function
-  msgpack msg_pack(ip_addr_me, stoi(portno_me), m_name, currtime, 1, "N/A");
-  string msg_sent = serialize(msg_pack);
-  strcpy(buff, msg_sent.c_str());
-
-  p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
-  if (p_chat->num < 0) {
-    return p_chat->num;
-  }
-
+  string msg = "join_request" + "#$" + to_string(getLocalTime()) + "#$" + m_name + "#$" + m_addr;
+  send_handler(msg, l_addr, p_chat);
   return 0;
 }
 
