@@ -198,32 +198,7 @@ void broadcast(dchat *p_chat, string msg) {
   for (auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
   //cout<<"\t this iter: \t"<< iter->first << endl;
     //if(iter->first == p_chat->leader) continue; //dont send to leader herself
-
-    vector<string> vec_other = split(iter->first, ":");
-    string ip_addr = vec_other.front();
-    string portno = vec_other.back();
-
-    bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
-    p_chat->other.sin_family = AF_INET;
-    p_chat->other.sin_addr.s_addr = inet_addr(ip_addr.c_str());
-    p_chat->other.sin_port = htons(stoi(portno));
-
-    /*  Combining the sending string  & Get args for sendto() function*/
-    char buff[2048];
-    bzero(buff, 2048);
-  //cout<<"\t p_chat->leader \t"<< p_chat->leader<<endl;
-    vector<string> myvec = split(p_chat->leader, ":");
-    string ip_addr_me = myvec.front();
-    string portno_me = myvec.back();
-    int currtime = getLocalTime();  
-    msgpack msg_pack(ip_addr_me, stoi(portno_me), p_chat->my_name, currtime, 0, msg);
-    string msg_sent = serialize(msg_pack);
-    strcpy(buff, msg_sent.c_str());
-
-    p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
-    if (p_chat->num < 0) {
-      error("Error with sendto!\n");
-    }
+    send_handler(msg, iter->first, p_chat);
   }
 }
 
