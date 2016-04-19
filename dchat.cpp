@@ -193,10 +193,38 @@ void *recv_msgs(void *threadarg) {
         error("Error with recvfrom!\n");
     }
     vector<string> message = split(buff);
-    
-
+    switch (message[0]) {
+      case "normal" :
+        handle_normal_request(p_chat, message);
+        break;
+      case "join_request" :
+        handle_join_request(p_chat, message);
+        break;
+      case "join_form" :
+        handle_join_form(p_chat, message);
+        break;
+      case "join_response" :
+        handle_join_response(p_chat, message);
+        break;
+      case "client_heartbeat" :
+        handle_client_heartbeat(p_chat, message);
+        break;
+      case "leader_heartbeat" :
+        handle_leader_heartbeat(p_chat, message);
+        break;
+      case "client_leave" :
+        handle_client_leave(p_chat, message);
+        break;
+      case "election" :
+        handle_election(p_chat, message);
+        break;
+      case "new_leader" :
+        hander_new_leader(p_chat, message);
+        break;
+    }
   }
 }
+
 
 void *recv_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
