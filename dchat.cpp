@@ -331,8 +331,8 @@ void *send_msgs(void *threadarg) {
       getline(cin, line);
       line = p_chat->my_name + ":\t" + line;
 
-      string msg = "normal" + "#$" + to_string(getLocalTime()) + line;
-      send_handler(msg, p_chat->leader, msg);
+      string msg = "normal" + "#$" + to_string(getLocalTime()) + "#$" + line;
+      send_handler(msg, p_chat->leader, p_chat);
     }
     //mtx.unlock();
   }
@@ -345,31 +345,8 @@ void *send_heart_beat(void *threadarg) {
   while (true) {
     usleep(1000000);
 
-    char buff[2048];
-    bzero(buff, 2048);
-
-    vector<string> myvec = split(p_chat->my_addr, ":");
-    string ip_addr_me = myvec.front();
-    string portno_me = myvec.back();
-
-    vector<string> vec_other = split(p_chat->leader, ":");
-    string ip_addr_other = vec_other.front();
-    string portno_other = vec_other.back();
-
-    bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
-    p_chat->other.sin_family = AF_INET;
-    p_chat->other.sin_addr.s_addr = inet_addr(ip_addr_other.c_str());
-    p_chat->other.sin_port = htons(stoi(portno_other));
-
-    int currtime = getLocalTime();  
-    msgpack msg_pack(ip_addr_me, stoi(portno_me), p_chat->my_name, currtime, 2, "N/A");
-    string msg_sent = serialize(msg_pack);
-    strcpy(buff, msg_sent.c_str());
-
-    p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
-    if (p_chat->num < 0) {
-      error("Error with sendto!\n");
-    }
+    string msg = "client_heartbeat" + "#$" + to_string(getLocalTime());
+    send_handler(msg, p_chat->leader, p_chat);
   }
   pthread_exit(NULL);
 }
@@ -385,6 +362,7 @@ void *check_alive(void* threadarg) {
         p_chat->last_alive.erase(iter++);
 
         string msg = "NOTICE " + name + " left the chat or crashed";
+        msg = "client_leave" + "#$" + to_string(getLocalTime()) + "#$" + msg;
         broadcast(p_chat, msg);
       } else {
         ++iter;
