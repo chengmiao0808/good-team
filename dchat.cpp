@@ -190,8 +190,8 @@ void leader_receive_handler(dchat* p_chat, string msg) {
       case "join_request" :
         leader_handle_join_request(p_chat, message);
         break;
-      case "join_form" :
-        leader_handle_join_form(p_chat, message);
+      case "join_inform" :
+        leader_handle_join_inform(p_chat, message);
         break;
       case "join_response" :
         leader_handle_join_response(p_chat, message);
@@ -223,8 +223,8 @@ void client_receive_handler(dchat* p_chat, string msg) {
       case "join_request" :
         client_handle_join_request(p_chat, message);
         break;
-      case "join_form" :
-        client_handle_join_form(p_chat, message);
+      case "join_inform" :
+        client_handle_join_inform(p_chat, message);
         break;
       case "join_response" :
         client_handle_join_response(p_chat, message);

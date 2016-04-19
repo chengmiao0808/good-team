@@ -37,8 +37,10 @@ public:
 	bool is_leader;
 
 	int current_stamp; // for event total ordering
+	int leader_stamp; // for event total ordering
 	map<string, int> current_member_stamp; // for event total ordering
 	map<string, deque<string>> member_event_queue; // for event total ordering
+	map<int, string> msgs; 
 
 	map<string, int> member_last_alive; //<"ip_address:port", "last_alive_time">
 	int leader_last_alive;
@@ -51,9 +53,11 @@ public:
 
 	dchat() {
 		current_stamp = 0;
+		leader_stamp = 0;
 		all_members_list = map<string, string>();
 		current_member_stamp = map<string, int>();
 		member_last_alive = map<string, int>();
+		msgs = map<int, string>();
 		member_event_queue = map<string, deque<string>>();
 	}
 	string get_ip_address();
