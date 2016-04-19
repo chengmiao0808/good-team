@@ -173,6 +173,25 @@ void dchat::join_a_group(string m_name, string l_addr) {
   }
 }
 
+void sender(string msg, string other_addr, dchat *p_chat) {
+  vector<string> vec_other = split(other_addr, ":");
+  string ip_addr_other = vec_other.front();
+  string portno_other = vec_other.back();
+
+  bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
+  p_chat->other.sin_family = AF_INET;
+  p_chat->other.sin_addr.s_addr = inet_addr(ip_addr_other.c_str());
+  p_chat->other.sin_port = htons(stoi(portno_other));
+
+  char buff[2048];
+  bzero(buff, 2048);
+  strcpy(buff, msg.c_str());
+
+  p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
+  if (p_chat->num < 0) {
+      error("Error with sendto!\n");
+  }
+}
 
 void broadcast(dchat *p_chat, string msg) {
 
