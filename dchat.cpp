@@ -105,26 +105,6 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
     return p_chat->num;
   }
 
-  p_chat->len = sizeof(p_chat->other);
-  bzero((char *) &(p_chat->other), p_chat->len);
-  bzero(buff, 2048);
-  p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
-  if (p_chat->num < 0) {
-    return p_chat->num;
-  }
-//cout<<"Received the msg from the leader: \t"<<buff<<endl;   
-  string msg_recv = buff;
-  msg_pack = deserialize(msg_recv);
-  string members = msg_pack.msg;
-//cout<<"memebers: "<<members<<endl; // Problem here! should not be empty
-  vector<string> vec = split(members, "\t");
-  p_chat->leader = vec[0];
-  for(int index = 1; index<vec.size(); index+=2) {
-    string key = vec[index];
-    string val = vec[index+1];
-    p_chat->all_members_list[key] = val;
-  }
-
   return 0;
 }
 
