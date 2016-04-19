@@ -173,7 +173,7 @@ void dchat::join_a_group(string m_name, string l_addr) {
   }
 }
 
-void sender(string msg, string other_addr, dchat *p_chat) {
+void send_handler(string msg, string other_addr, dchat *p_chat) {
   vector<string> vec_other = split(other_addr, ":");
   string ip_addr_other = vec_other.front();
   string portno_other = vec_other.back();
@@ -356,27 +356,8 @@ void *send_msgs(void *threadarg) {
       getline(cin, line);
       line = p_chat->my_name + ":\t" + line;
 
-      vector<string> vec_other = split(p_chat->leader, ":");
-      string ip_addr_other = vec_other.front();
-      string portno_other = vec_other.back();
-
-
-      bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
-      p_chat->other.sin_family = AF_INET;
-      p_chat->other.sin_addr.s_addr = inet_addr(ip_addr_other.c_str());
-      p_chat->other.sin_port = htons(stoi(portno_other));
-
-      char buff[2048];
-      bzero(buff, 2048);
-      vector<string> myvec = split(p_chat->my_addr, ":");
-      string ip_addr_me = myvec.front();
-      string portno_me = myvec.back();
-      int currtime = getLocalTime(); 
-      msgpack msg_pack(ip_addr_me, stoi(portno_me), p_chat->my_name, currtime, 0, line);
-      string msg_sent = serialize(msg_pack);
-      strcpy(buff, msg_sent.c_str());
-
-      p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
+      string msg = "normal" + "#$" + to_string(getLocalTime()) + line;
+      send_handler(msg, p_chat->leader, msg);
     }
     //mtx.unlock();
   }
