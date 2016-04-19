@@ -168,50 +168,83 @@ void *recv_msgs(void *threadarg) {
     char buff[2048];
     bzero(buff, 2048);
     p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
-    if (p_chat->num < 0){
-        error("Error with recvfrom!\n");
+    if (p_chat-> num < 0) {
+      error("Error with recvfrom!\n");
     }
-    vector<string> message = split(buff);
-    switch (message[0]) {
-      case "normal" :
-        handle_normal_request(p_chat, message);
-        break;
-      case "join_request" :
-        handle_join_request(p_chat, message);
-        break;
-      case "join_form" :
-        handle_join_form(p_chat, message);
-        break;
-      case "join_response" :
-        handle_join_response(p_chat, message);
-        break;
-      case "client_heartbeat" :
-        handle_client_heartbeat(p_chat, message);
-        break;
-      case "leader_heartbeat" :
-        handle_leader_heartbeat(p_chat, message);
-        break;
-      case "client_leave" :
-        handle_client_leave(p_chat, message);
-        break;
-      case "election" :
-        handle_election(p_chat, message);
-        break;
-      case "new_leader" :
-        hander_new_leader(p_chat, message);
-        break;
+    if (p_chat->is_leader) {
+      leader_receive_handler(p_chat, (string) buff);
+    } else {
+      client_receive_handler(p_chat, (string) buff);
     }
   }
 
   pthread_exit(NULL);
 }
 
-void leader_receive_handler(dchat* p_chat, string message) {
-  
+void leader_receive_handler(dchat* p_chat, string msg) {
+  vector<string> message = split(msg);
+  switch (message[0]) {
+      case "normal" :
+        leader_handle_normal_request(p_chat, message);
+        break;
+      case "join_request" :
+        leader_handle_join_request(p_chat, message);
+        break;
+      case "join_form" :
+        leader_handle_join_form(p_chat, message);
+        break;
+      case "join_response" :
+        leader_handle_join_response(p_chat, message);
+        break;
+      case "client_heartbeat" :
+        leader_handle_client_heartbeat(p_chat, message);
+        break;
+      case "leader_heartbeat" :
+        leader_handle_leader_heartbeat(p_chat, message);
+        break;
+      case "client_leave" :
+        leader_handle_client_leave(p_chat, message);
+        break;
+      case "election" :
+        leader_handle_election(p_chat, message);
+        break;
+      case "new_leader" :
+        leader_hander_new_leader(p_chat, message);
+        break;
+    }
 }
 
-void client_receive_handler(dchat* p_chat, string message) {
-  
+void client_receive_handler(dchat* p_chat, string msg) {
+  vector<string> message = split(msg);
+  switch (message[0]) {
+      case "normal" :
+        client_handle_normal_request(p_chat, message);
+        break;
+      case "join_request" :
+        client_handle_join_request(p_chat, message);
+        break;
+      case "join_form" :
+        client_handle_join_form(p_chat, message);
+        break;
+      case "join_response" :
+        client_handle_join_response(p_chat, message);
+        break;
+      case "client_heartbeat" :
+        client_handle_client_heartbeat(p_chat, message);
+        break;
+      case "leader_heartbeat" :
+        client_handle_leader_heartbeat(p_chat, message);
+        break;
+      case "client_leave" :
+        client_handle_client_leave(p_chat, message);
+        break;
+      case "election" :
+        client_handle_election(p_chat, message);
+        break;
+      case "new_leader" :
+        client_hander_new_leader(p_chat, message);
+        break;
+    }
 }
 
 
