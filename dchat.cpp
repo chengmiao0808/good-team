@@ -206,6 +206,73 @@ void *recv_msgs(void *threadarg) {
   pthread_exit(NULL);
 }
 
+void handle_normal_request(dchat *p_chat, string message) {
+  int timestamp = atoi(message[1]);
+  string username = message[2];
+  string msg = message[3];
+  if (p_chat->is_leader) {
+    if (username.compare(p_chat->my_name) == 0) {
+      //if it's my self
+      cout << msg << endl;
+    } else {
+      broadcast(p_chat, message);
+    }
+  } else {
+    cout << msg << endl;
+  }
+}
+
+void handle_join_request(dchat *p_chat, string message) {
+  int timestamp = atoi(message[1]);
+  string username = message[2];
+  string userIPandPort = message[3];
+  if (p_chat->is_leader) {
+    //send join form
+    send_join_form(p_chat, )
+    //send join response
+  } else {
+    send_handler(message, p_chat->leader, p_chat);
+  }
+}
+
+void handle_join_form(dchat *p_chat, string message) {
+  int timestamp = atoi(message[1]);
+  string username = message[2];
+  string userIPandPort = message[3];
+  if (!p_chat->is_leader) {
+    p_chat->all_members_list[userIPandPort] = username;
+    cout << "NOTICE: " + username + " left the chat or crashed";
+  }
+}
+
+
+void handle_join_response(dchat *p_chat, string message) {
+  int timestamp = atoi(message[1]);
+  string leader = message[2];
+  if (!p_chat->is_leader) {
+    p_chat->leader = leader;
+    for (int i = 3; i < message.size(); i += 2) {
+      p_chat->all_members_list[message[i]] = message[i + 1];
+    }
+  }
+}
+
+void handle_client_heartbeat(dchat *p_chat, string message) {
+  int timestamp = atoi(message[1]);
+  string userIPandPort = message[2];
+  if (p_chat->is_leader) {
+    p_chat->clients_last_alive[userIPandPort] = timestamp;
+  }
+}
+
+void handle_leader_heartbeat(dchat *p_chat, string message) {
+  int timestamp = atoi(message[1]);
+  if (!p_chat->is_leader) {
+    p_chat->leader_last_alive = timestamp;
+  }
+}
+
+
 
 
 
