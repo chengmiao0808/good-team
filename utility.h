@@ -13,11 +13,9 @@ using namespace std;
 
 int getLocalTime();
 
-string serialize(msgpack m);
+vector<string> split(string str);
 
-msgpack deserialize(string str);
-
-vector<string> split(string str, string sep);
+vector<string> split_helper(string str, string sep);
 
 
 #endif
