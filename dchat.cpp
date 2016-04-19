@@ -173,7 +173,7 @@ void dchat::join_a_group(string m_name, string l_addr) {
   }
 }
 
-void sender(string msg, string other_addr, dchat *p_chat) {
+void send_handler(string msg, string other_addr, dchat *p_chat) {
   vector<string> vec_other = split(other_addr, ":");
   string ip_addr_other = vec_other.front();
   string portno_other = vec_other.back();
