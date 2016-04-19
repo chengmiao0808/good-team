@@ -36,7 +36,12 @@ public:
 	string my_name;
 	bool is_leader;
 
-	map<string, int> last_alive; //<"ip_address:port", "last_alive_time">
+	int current_stamp; // for event total ordering
+	map<string, int> current_member_stamp; // for event total ordering
+	map<string, deque<string>> member_event_queue; // for event total ordering
+
+	map<string, int> member_last_alive; //<"ip_address:port", "last_alive_time">
+	int leader_last_alive;
 	
 
 	int sock, sock2, num, len;
@@ -45,7 +50,11 @@ public:
 
 
 	dchat() {
+		current_stamp = 0;
 		all_members_list = map<string, string>();
+		current_member_stamp = map<string, int>();
+		member_last_alive = map<string, int>();
+		member_event_queue = map<string, deque<string>>();
 	}
 	string get_ip_address();
 	void start_new_group(string l_name);

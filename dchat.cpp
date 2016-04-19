@@ -82,7 +82,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
   if (n < 0)
     return n;
 
-  string msg = "join_request" + "#$" + to_string(getLocalTime()) + "#$" + m_name + "#$" + m_addr;
+  string msg = "join_request" + "#$" + m_name + "#$" + m_addr;
   send_handler(msg, l_addr, p_chat);
   return 0;
 }
@@ -231,7 +231,8 @@ void *send_msgs(void *threadarg) {
       getline(cin, line);
       line = p_chat->my_name + ":\t" + line;
 
-      string msg = "normal" + "#$" + to_string(getLocalTime()) + "#$" + line;
+      string msg = "normal" + "#$" + to_string(p_chat->current_stamp) + "#$" + line;
+      p_chat->current_stamp++;
       send_handler(msg, p_chat->leader, p_chat);
     }
     //mtx.unlock();
@@ -245,7 +246,7 @@ void *send_heart_beat(void *threadarg) {
   while (true) {
     usleep(1000000);
 
-    string msg = "client_heartbeat" + "#$" + to_string(getLocalTime());
+    string msg = "client_heartbeat" + "#$";
     send_handler(msg, p_chat->leader, p_chat);
   }
   pthread_exit(NULL);
