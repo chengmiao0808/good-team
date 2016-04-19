@@ -202,115 +202,12 @@ void *recv_msgs(void *threadarg) {
         break;
     }
   }
-}
 
-
-void *recv_msgs(void *threadarg) {
-  dchat *p_chat = (dchat *) threadarg;
-
-  for(;;) {
-    //mtx.lock();
-    if (p_chat->is_leader == true) {
-      bzero((char *) &(p_chat->other), p_chat->len);
-      char buff[2048];
-      bzero(buff, 2048);
-      p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
-      //cout<<"Received the msg: \t"<<buff<<endl;    
-      if (p_chat->num < 0){
-        error("Error with recvfrom!\n");
-      }
-      /*  Unpacked the msg  */
-      msgpack msg_pack = deserialize(buff);
-      if (msg_pack.command == 1) {
-
-        // Receive JOIN THE GROUP
-        p_chat->all_members_list[msg_pack.IP+":"+ to_string(msg_pack.port)] = msg_pack.username;
-        p_chat->last_alive[msg_pack.IP+":"+ to_string(msg_pack.port)] = msg_pack.t_time;
-        //cout<<"A NEW MEMBER\t"<<p_chat->all_members_list[msg_pack.IP+":"+ to_string(msg_pack.port)]<< endl;
-        char nbuff[2048];
-        bzero(nbuff, 2048);
-        //cout<<"\t p_chat->leader \t"<< p_chat->leader<<endl;
-        vector<string> myvec = split(p_chat->leader, ":");
-        string ip_addr_me = myvec.front();
-        string portno_me = myvec.back();
-        int currtime = getLocalTime();  
-
-        string ip_addr = msg_pack.IP;
-        string portno = to_string(msg_pack.port);
-        bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
-        p_chat->other.sin_family = AF_INET;
-        p_chat->other.sin_addr.s_addr = inet_addr(ip_addr.c_str());
-        p_chat->other.sin_port = htons(stoi(portno));
-
-        /* Create the member list */
-        string memeber_list = ip_addr_me +":"+ portno_me;
-        for (auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
-          memeber_list += "\t" + iter->first;
-          memeber_list+= "\t" + iter->second;
-        }     
-
-        string newmem_name =msg_pack.username;
-        string newmem_IP = msg_pack.IP;
-        string newmem_port = to_string(msg_pack.port);
-        msgpack msg_pack(ip_addr_me, stoi(portno_me), p_chat->my_name, currtime, 0, memeber_list);
-        string msg_sent = serialize(msg_pack);
-        strcpy(nbuff, msg_sent.c_str());
-        //cout<<nbuff<<endl;
-
-        p_chat->num = sendto(p_chat->sock, nbuff, strlen(nbuff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
-        if (p_chat->num < 0) {
-          error("Error with sendto!\n");
-        }
-        string buff_str = "NOTICE "+ newmem_name +" joined on "+ newmem_IP +":"+ newmem_port;
-        broadcast(p_chat, buff_str);        
-
-      } else if (msg_pack.command == 2) {//heartbeat
-        string ip_and_port = msg_pack.IP + ":" + to_string(msg_pack.port);
-        p_chat->last_alive[ip_and_port] = msg_pack.t_time;
-      } else if (msg_pack.username != p_chat->my_name) { 
-        string buff_str = msg_pack.msg;
-        broadcast(p_chat, buff_str);    
-        //cout<<"Successfully broadcast received msg: \t"<<buff<<endl;    
-      } else {
-        cout<<msg_pack.msg<<endl;
-      }
-
-      } else { // regular memeber
-        bzero((char *) &(p_chat->other), p_chat->len);
-        char buff[2048];
-        bzero(buff, 2048);
-        p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
-        if (p_chat->num < 0) {
-          error("Error with recvfrom\n");
-        }
-        /*  Unpacked the msg  */
-        msgpack msg_pack = deserialize(buff);
-      
-        if (msg_pack.command == 1) { 
-        /* directly forward the join request to the leader */
-          vector<string> vec_other = split(p_chat->leader, ":");
-          string ip_addr_other = vec_other.front();
-          string portno_other = vec_other.back();
-          p_chat->is_leader = false;
-
-          bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
-          p_chat->other.sin_family = AF_INET;
-          p_chat->other.sin_addr.s_addr = inet_addr(ip_addr_other.c_str());
-          p_chat->other.sin_port = htons(stoi(portno_other));
-
-          p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
-          if (p_chat->num < 0) {
-            error("Error with sendto!\n");
-          }
-        } else {
-          cout<<msg_pack.msg<<endl;
-        //cout<<"Message from server:\t"<<buff<<endl; 
-        }    
-      }
-    //mtx.unlock();
-  }
   pthread_exit(NULL);
 }
+
+
+
 
 
 void *send_msgs(void *threadarg) {
