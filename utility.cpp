@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+const string ALPHABET = "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ0123456789 ";
+
+
 using namespace std;
 
 /*
@@ -30,3 +33,34 @@ vector<string> split_helper(string str, string sep) {
     }
     return arr;
 }
+
+string encrypt(string input) {
+	int key = 5; // assuming change by 5
+	string result = "";
+	for(int i = 0; i < input.length() ; i++) {
+		for(int j = 0; j <= ALPHABET.length(); j++) {
+			if(input[i] == ALPHABET[j]) {
+				result += ALPHABET[(j + key) % ALPHABET.length()];
+				break;
+			}
+		}
+	}
+
+	return result;
+}
+
+string decrypt(string input) {
+	int key = 5; // assuming change by 5
+	string result = "";
+	for(int i = 0; i < input.length(); i++) {
+		for(int j = 0; j <= ALPHABET.length(); j++) {
+			if(input[i] == ALPHABET[j]) {
+				j < key ? result += ALPHABET[((j + ALPHABET.length()) - key) % ALPHABET.length()] : result += ALPHABET[(j - key) % ALPHABET.length()];
+				break;
+			}
+		}
+	}
+
+	return result;
+}
+

@@ -12,6 +12,8 @@ using namespace std;
 
 
 int getLocalTime();
+string encrypt(string);
+string decrypt(string);
 
 vector<string> split(string str);
 
