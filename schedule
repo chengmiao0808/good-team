@@ -26,9 +26,9 @@ Yilun Fu: Multicast protocol and Message design
 
 Miao Cheng: Basic infrastructure and Server design
 
-Yi-ping Lin: Multicast protocol and Ordered protocol
+Yi-ping Lin: Multicast protocol
 
-All: Sequencer election
+All: Ordering protocol and Sequencer election
 
 Detailed Design Specification:
 Shared Functions:
