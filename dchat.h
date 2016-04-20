@@ -37,14 +37,16 @@ public:
 	bool is_leader;
 
 	int current_stamp; // for event total ordering
-	int leader_stamp; // for event total ordering
-	map<string, int> current_member_stamp; // for event total ordering
-	map<string, deque<string>> member_event_queue; // for event total ordering
-	deque<string> leader_event_queue; // for event total ordering
 	map<int, string> msgs; // Store previous messages
 
+	map<string, int> current_member_stamp; // for event total ordering
+	map<string, deque<string>> member_event_queue; // for event total ordering
 	map<string, int> member_last_alive; //<"ip_address:port", "last_alive_time">
+
+
+	int leader_stamp; // for event total ordering
 	int leader_last_alive;
+	deque<string> leader_event_queue; // for event total ordering
 	
 
 	int sock, sock2, num, len;

@@ -181,20 +181,50 @@ void *recv_msgs(void *threadarg) {
   pthread_exit(NULL);
 }
 
+void check_queue(dchat *p_chat, deque<string> my_que) {
+  int i;
+    for (i = 0; my_que.at(i).empty()!=1; i++) {
+      vector<string> message = split(my_que.at(i));
+      switch (message[0]) {
+        case "normal" :
+
+        case "client_request" :
+
+        case "join_request" :
+
+        case "leader_request" :
+
+        case "join_request" :
+
+        case "join_inform" :
+
+        case "join_response" :
+
+        case "client_leave" :
+
+        case "election" :
+
+        case "new_leader" :
+
+
+      }
+    }
+}
+
 void leader_receive_handler(dchat* p_chat, string msg) {
   vector<string> message = split(msg);
   switch (message[0]) {
-      case "normal" :
-        leader_handle_normal_request(p_chat, message);
-        break;
-      case "client_request" :
-        leader_handle_client_request(p_chat, message);
-        break;
-      case "join_request" :
-        leader_handle_join_request(p_chat, message);
-        break;
       case "client_heartbeat" :
         leader_handle_client_heartbeat(p_chat, message);
+        break;
+      default:
+        if (p_chat-> == stoi(message[1])) {
+          p_chat->
+          check_queue(p_chat, );
+        }
+        else {
+
+        }
         break;
     }
 }
@@ -202,34 +232,19 @@ void leader_receive_handler(dchat* p_chat, string msg) {
 void client_receive_handler(dchat* p_chat, string msg) {
   vector<string> message = split(msg);
   switch (message[0]) {
-      case "normal" :
-        client_handle_normal_request(p_chat, message);
-        break;
-      case "leader_request" :
-        client_handle_leader_request(p_chat, message);
-        break;
-      case "join_request" :
-        client_handle_join_request(p_chat, message);
-        break;
-      case "join_inform" :
-        client_handle_join_inform(p_chat, message);
-        break;
-      case "join_response" :
-        client_handle_join_response(p_chat, message);
-        break;
       case "leader_heartbeat" :
         client_handle_leader_heartbeat(p_chat, message);
         break;
-      case "client_leave" :
-        client_handle_client_leave(p_chat, message);
+      default:
+        if (p_chat->leader_stamp == stoi(message[1])) {
+
+          check_queue(p_chat, );
+        }
+        else {
+
+        }
         break;
-      case "election" :
-        client_handle_election(p_chat, message);
-        break;
-      case "new_leader" :
-        client_handle_new_leader(p_chat, message);
-        break;
-    }
+  }
 }
 
 
