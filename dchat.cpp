@@ -187,6 +187,9 @@ void leader_receive_handler(dchat* p_chat, string msg) {
       case "normal" :
         leader_handle_normal_request(p_chat, message);
         break;
+      case "client_request" :
+        leader_handle_client_request(p_chat, message);
+        break;
       case "join_request" :
         leader_handle_join_request(p_chat, message);
         break;
