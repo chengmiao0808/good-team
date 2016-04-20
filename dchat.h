@@ -30,7 +30,7 @@ public:
 	// Store all the members' info in the current group
 	map<string, string> all_members_list; // <"ip_address:port", "name">
 	// Store the leader's "ip_address:port" info
-	string leader;
+	string leader_addr;
 	// Store my own "ip_address:port" info
 	string my_addr;
 	string my_name;
