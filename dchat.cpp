@@ -212,7 +212,7 @@ void leader_receive_handler(dchat* p_chat, string msg) {
         leader_handle_election(p_chat, message);
         break;
       case "new_leader" :
-        leader_hander_new_leader(p_chat, message);
+        leader_handle_new_leader(p_chat, message);
         break;
     }
 }
@@ -222,6 +222,9 @@ void client_receive_handler(dchat* p_chat, string msg) {
   switch (message[0]) {
       case "normal" :
         client_handle_normal_request(p_chat, message);
+        break;
+      case "leader_request" :
+        client_handle_leader_request(p_chat, message);
         break;
       case "join_request" :
         client_handle_join_request(p_chat, message);
@@ -245,7 +248,7 @@ void client_receive_handler(dchat* p_chat, string msg) {
         client_handle_election(p_chat, message);
         break;
       case "new_leader" :
-        client_hander_new_leader(p_chat, message);
+        client_handle_new_leader(p_chat, message);
         break;
     }
 }
