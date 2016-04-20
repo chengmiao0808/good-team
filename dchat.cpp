@@ -187,26 +187,35 @@ void check_queue(dchat *p_chat, deque<string> my_que) {
       vector<string> message = split(my_que.at(i));
       switch (message[0]) {
         case "normal" :
-
-        case "client_request" :
-
+          handle_normal_request(p_chat, message);
+          break;
         case "join_request" :
-
-        case "leader_request" :
-
-        case "join_request" :
-
+          handle_join_request(p_chat, message);
+          break;
         case "join_inform" :
-
+          handle_join_inform(p_chat, message);
+          break;
         case "join_response" :
-
+          handle_join_response(p_chat, message);
+          break;
         case "client_leave" :
-
+          handle_client_leave(p_chat, message);
+          break;
         case "election" :
-
+          handle_election(p_chat, message);
+          break;
         case "new_leader" :
-
-
+          handle_new_leader(p_chat, message);
+          break;
+        case "refuse" :
+          handle_refuse(p_chat, message);
+          break;
+        case "client_request" :
+          handle_client_request(p_chat, message);
+          break;
+        case "leader_request" :
+          handle_leader_request(p_chat, message);
+          break;
       }
     }
 }
