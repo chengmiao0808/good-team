@@ -183,79 +183,72 @@ void *recv_msgs(void *threadarg) {
 
 void check_queue(dchat *p_chat, deque<string> my_que) {
   int i;
-    for (i = 0; my_que.at(i).empty()!=1; i++) {
-      vector<string> message = split(my_que.at(i));
-      switch (message[0]) {
-        case "normal" :
-          handle_normal_request(p_chat, message);
-          break;
-        case "join_request" :
-          handle_join_request(p_chat, message);
-          break;
-        case "join_inform" :
-          handle_join_inform(p_chat, message);
-          break;
-        case "join_response" :
-          handle_join_response(p_chat, message);
-          break;
-        case "client_leave" :
-          handle_client_leave(p_chat, message);
-          break;
-        case "election" :
-          handle_election(p_chat, message);
-          break;
-        case "new_leader" :
-          handle_new_leader(p_chat, message);
-          break;
-        case "refuse" :
-          handle_refuse(p_chat, message);
-          break;
-        case "client_request" :
-          handle_client_request(p_chat, message);
-          break;
-        case "leader_request" :
-          handle_leader_request(p_chat, message);
-          break;
-      }
+  for (i = 0; my_que.at(i).empty()!=1; i++) {
+    vector<string> message = split(my_que.at(i));
+    if (strcmp(message[0], "normal") == 0) {
+      handle_normal_message(p_chat, message);
+    }
+    else if (strcmp(message[0], "join_request") == 0) {
+      handle_join_request(p_chat, message);
+    }
+    else if (strcmp(message[0], "join_inform") == 0) {
+      handle_join_inform(p_chat, message);
+    } 
+    else if (strcmp(message[0], "join_response") == 0) {
+      handle_join_response(p_chat, message);
+    }
+    else if (strcmp(message[0], "client_leave") == 0) {
+      handle_client_leave(p_chat, message);
+    }
+    else if (strcmp(message[0], "election") == 0) {
+      handle_election(p_chat, message);
+    }
+    else if (strcmp(message[0], "new_leader") == 0) {
+      handle_new_leader(p_chat, message);
+    }
+    else if (strcmp(message[0], "refuse") == 0) {
+      handle_refuse(p_chat, message);
+    }
+    else if (strcmp(message[0], "client_request") == 0) {
+      handle_client_request(p_chat, message);
+    }
+    else {
+      handle_leader_request(p_chat, message);
     }
   }
+}
 
-  
- void leader_receive_handler(dchat* p_chat, string msg) {
-   vector<string> message = split(msg);
-   switch (message[0]) {
-     case "client_heartbeat" :
-       leader_handle_client_heartbeat(p_chat, message);
-       break;
-     default:
-       if (p_chat->current_member_stamp[message[2]] == stoi(message[1])) {
-         p_chat->member_event_queue[message[2]].at(i) = msg;
-         check_queue(p_chat, p_chat->member_event_queue[message[2]]);
-       }
-       else {
+void leader_receive_handler(dchat* p_chat, string msg) {
+  vector<string> message = split(msg);
+  if (strcmp(message[0], "client_heartbeat") == 0) {
+    leader_handle_client_heartbeat(p_chat, message);
+  } 
+  else {
+    if (p_chat->current_member_stamp[message[2]] == stoi(message[1])) {
+      p_chat->member_event_queue[message[2]].at(i) = msg;
+      check_queue(p_chat, p_chat->member_event_queue[message[2]]);
+    }
+    else {
  
-       }
-       break;
-     }
- }
- 
- void client_receive_handler(dchat* p_chat, string msg) {
-   vector<string> message = split(msg);
-   switch (message[0]) {
-       case "leader_heartbeat" :
-         client_handle_leader_heartbeat(p_chat, message);
-         break;
-       default:
-         if (p_chat->leader_stamp == stoi(message[1])) {
-           p_chat->leader_event_queue[message[2]].at(i) = msg;
-           check_queue(p_chat, p_chat->leader_event_queue);
-         }
-         else {
- 
-         }
-         break;
-   }
- }
+    }
+  }
+}
+
+void client_receive_handler(dchat* p_chat, string msg) {
+  vector<string> message = split(msg);
+  if (strcmp(message[0], "leader_heartbeat") == 0) {
+    client_handle_leader_heartbeat(p_chat, message);
+  }
+  else {
+    if (p_chat->leader_stamp == stoi(message[1])) {
+      p_chat->leader_event_queue[message[2]].at(i) = msg;
+      check_queue(p_chat, p_chat->leader_event_queue);
+    }
+    else {
+
+    }
+  }
+}
 
 
 void *send_msgs(void *threadarg) {
