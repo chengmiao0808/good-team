@@ -183,49 +183,49 @@ void *recv_msgs(void *threadarg) {
 
 void check_queue(dchat *p_chat, deque<string> my_que) {
   int i;
-    for (i = 0; my_que.at(i).empty()!=1; i++) {
-      vector<string> message = split(my_que.at(i));
-      switch (message[0]) {
-        case "normal" :
+  for (i = 0; my_que.at(i).empty()!=1; i++) {
+    vector<string> message = split(my_que.at(i));
+    switch (message[0]) {
+      case "normal" :
 
-        case "client_request" :
+      case "client_request" :
 
-        case "join_request" :
+      case "join_request" :
 
-        case "leader_request" :
+      case "leader_request" :
 
-        case "join_request" :
+      case "join_request" :
 
-        case "join_inform" :
+      case "join_inform" :
 
-        case "join_response" :
+      case "join_response" :
 
-        case "client_leave" :
+      case "client_leave" :
 
-        case "election" :
+      case "election" :
 
-        case "new_leader" :
+      case "new_leader" :
 
 
-      }
     }
+  }
 }
 
 void leader_receive_handler(dchat* p_chat, string msg) {
   vector<string> message = split(msg);
   switch (message[0]) {
-      case "client_heartbeat" :
-        leader_handle_client_heartbeat(p_chat, message);
-        break;
-      default:
-        if (p_chat-> == stoi(message[1])) {
-          p_chat->
-          check_queue(p_chat, );
-        }
-        else {
+    case "client_heartbeat" :
+      leader_handle_client_heartbeat(p_chat, message);
+      break;
+    default:
+      if (p_chat->current_member_stamp[message[2]] == stoi(message[1])) {
+        p_chat->member_event_queue[message[2]].at(i) = msg;
+        check_queue(p_chat, p_chat->member_event_queue[message[2]]);
+      }
+      else {
 
-        }
-        break;
+      }
+      break;
     }
 }
 
@@ -237,8 +237,8 @@ void client_receive_handler(dchat* p_chat, string msg) {
         break;
       default:
         if (p_chat->leader_stamp == stoi(message[1])) {
-
-          check_queue(p_chat, );
+          p_chat->leader_event_queue[message[2]].at(i) = msg;
+          check_queue(p_chat, p_chat->leader_event_queue);
         }
         else {
 
