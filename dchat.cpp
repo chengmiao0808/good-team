@@ -193,26 +193,8 @@ void leader_receive_handler(dchat* p_chat, string msg) {
       case "join_request" :
         leader_handle_join_request(p_chat, message);
         break;
-      case "join_inform" :
-        leader_handle_join_inform(p_chat, message);
-        break;
-      case "join_response" :
-        leader_handle_join_response(p_chat, message);
-        break;
       case "client_heartbeat" :
         leader_handle_client_heartbeat(p_chat, message);
-        break;
-      case "leader_heartbeat" :
-        leader_handle_leader_heartbeat(p_chat, message);
-        break;
-      case "client_leave" :
-        leader_handle_client_leave(p_chat, message);
-        break;
-      case "election" :
-        leader_handle_election(p_chat, message);
-        break;
-      case "new_leader" :
-        leader_handle_new_leader(p_chat, message);
         break;
     }
 }
@@ -234,9 +216,6 @@ void client_receive_handler(dchat* p_chat, string msg) {
         break;
       case "join_response" :
         client_handle_join_response(p_chat, message);
-        break;
-      case "client_heartbeat" :
-        client_handle_client_heartbeat(p_chat, message);
         break;
       case "leader_heartbeat" :
         client_handle_leader_heartbeat(p_chat, message);
