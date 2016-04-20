@@ -183,7 +183,6 @@ void *recv_msgs(void *threadarg) {
 
 void check_queue(dchat *p_chat, deque<string> my_que) {
   int i;
-<<<<<<< HEAD
     for (i = 0; my_que.at(i).empty()!=1; i++) {
       vector<string> message = split(my_que.at(i));
       switch (message[0]) {
@@ -218,71 +217,8 @@ void check_queue(dchat *p_chat, deque<string> my_que) {
           handle_leader_request(p_chat, message);
           break;
       }
-=======
-  for (i = 0; my_que.at(i).empty()!=1; i++) {
-    vector<string> message = split(my_que.at(i));
-    switch (message[0]) {
-      case "normal" :
-
-      case "client_request" :
-
-      case "join_request" :
-
-      case "leader_request" :
-
-      case "join_request" :
-
-      case "join_inform" :
-
-      case "join_response" :
-
-      case "client_leave" :
-
-      case "election" :
-
-      case "new_leader" :
-
-
->>>>>>> 6570dd8ec97be04d52e56b2354450aeeda2017c0
     }
   }
-}
-
-void leader_receive_handler(dchat* p_chat, string msg) {
-  vector<string> message = split(msg);
-  switch (message[0]) {
-    case "client_heartbeat" :
-      leader_handle_client_heartbeat(p_chat, message);
-      break;
-    default:
-      if (p_chat->current_member_stamp[message[2]] == stoi(message[1])) {
-        p_chat->member_event_queue[message[2]].at(i) = msg;
-        check_queue(p_chat, p_chat->member_event_queue[message[2]]);
-      }
-      else {
-
-      }
-      break;
-    }
-}
-
-void client_receive_handler(dchat* p_chat, string msg) {
-  vector<string> message = split(msg);
-  switch (message[0]) {
-      case "leader_heartbeat" :
-        client_handle_leader_heartbeat(p_chat, message);
-        break;
-      default:
-        if (p_chat->leader_stamp == stoi(message[1])) {
-          p_chat->leader_event_queue[message[2]].at(i) = msg;
-          check_queue(p_chat, p_chat->leader_event_queue);
-        }
-        else {
-
-        }
-        break;
-  }
-}
 
 
 void *send_msgs(void *threadarg) {
