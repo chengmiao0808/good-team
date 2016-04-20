@@ -39,14 +39,15 @@ public:
 	int current_stamp; // for event total ordering
 	map<int, string> msgs; // Store previous messages
 
-	map<string, int> current_member_stamp; // for event total ordering
-	map<string, deque<string>> member_event_queue; // for event total ordering
+	// for the leader side
+	map<string, int> current_member_stamp;
+	map<string, deque<string>> member_event_queue;
 	map<string, int> member_last_alive; //<"ip_address:port", "last_alive_time">
 
-
-	int leader_stamp; // for event total ordering
+	// for the client side
+	int leader_stamp;
 	int leader_last_alive;
-	deque<string> leader_event_queue; // for event total ordering
+	deque<string> leader_event_queue;
 	
 
 	int sock, sock2, num, len;
