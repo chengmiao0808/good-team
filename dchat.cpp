@@ -6,7 +6,6 @@
 
 using namespace std;
 
-mutex mtx;
 
 void error(string err) {
   perror(err.c_str());
@@ -74,6 +73,7 @@ int bind_socket(dchat *p_chat, string my_addr) {
 }
 
 int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m_name) {
+  p_chat->has_joined = false;
   vector<string> vec_me = split(m_addr, ":");
   string ip_addr_me = vec_me.front();
   string portno_me = vec_me.back();
@@ -84,6 +84,8 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
 
   string msg = "join_request" + "#$" + m_name + "#$" + m_addr;
   send_handler(msg, l_addr, p_chat);
+  p_chat->leader_last_alive = getLocalTime();
+
   return 0;
 }
 
@@ -118,16 +120,18 @@ void dchat::join_a_group(string m_name, string l_addr) {
     cout<<m_name<<" joining a new chat on "<<l_addr<<", listening on\n"<<m_addr<<"\n";
     int n = start_a_regular_member(this, l_addr, m_addr, m_name);
     if (n == 0) {
-      my_addr = m_addr;
-      cout<<"Succeeded, current users:\n";
-      typedef map<string, string>::iterator it_type;
-      for (it_type iter = all_members_list.begin(); iter != all_members_list.end(); iter++) {
-        cout<<iter->second<<" "<<iter->first;
-        if (iter->first == leader)
-          cout<<" (Leader)";
-        cout<<"\n";
-      }
-      break;
+      if (has_joined) {
+        my_addr = m_addr;
+        cout<<"Succeeded, current users:\n";
+        typedef map<string, string>::iterator it_type;
+        for (it_type iter = all_members_list.begin(); iter != all_members_list.end(); iter++) {
+          cout<<iter->second<<" "<<iter->first;
+          if (iter->first == leader)
+            cout<<" (Leader)";
+          cout<<"\n";
+        }
+        break;
+      } 
     }
   }
 }
@@ -156,7 +160,7 @@ void broadcast(dchat *p_chat, string msg) {
 
   for (auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
   //cout<<"\t this iter: \t"<< iter->first << endl;
-    //if(iter->first == p_chat->leader) continue; //dont send to leader herself
+    if(iter->first == p_chat->leader) continue; //dont send to leader herself
     send_handler(msg, iter->first, p_chat);
   }
 }
@@ -284,33 +288,57 @@ void *send_msgs(void *threadarg) {
 void *send_heart_beat(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
   //cout << "HERE" << endl;
-  while (true) {
-    usleep(1000000);
-
+  if (p_chat->is_leader) {
+    string msg = "leader_heartbeat" + "#$";
+    while (true) {
+      usleep(1000000);
+      broadcast(p_chat, msg);
+    }
+  }
+  else {
     string msg = "client_heartbeat" + "#$";
-    send_handler(msg, p_chat->leader, p_chat);
+    while (true) {
+      usleep(1000000);
+      send_handler(msg, p_chat->leader, p_chat);
+    }
   }
   pthread_exit(NULL);
 }
 
 void *check_alive(void* threadarg) {
   dchat *p_chat = (dchat *) threadarg;
-  while (1) {
+  if (p_chat->is_leader) {
+    while (1) {
+      for (auto iter = p_chat->member_last_alive.begin(); iter != p_chat->member_last_alive.end(); ) {
+        if (getLocalTime() - (iter->second) > 3) {
+          string name = p_chat->all_members_list[iter->first];
+          p_chat->all_members_list.erase(iter->first);
+          p_chat->member_last_alive.erase(iter++);
 
-    for (auto iter = p_chat->last_alive.begin(); iter != p_chat->last_alive.end(); ) {
-      if (getLocalTime() - (iter->second) > 2) {
-        string name = p_chat->all_members_list[iter->first];
-        p_chat->all_members_list.erase(iter->first);
-        p_chat->last_alive.erase(iter++);
-
-        string msg = "NOTICE " + name + " left the chat or crashed";
-        msg = "client_leave" + "#$" + to_string(getLocalTime()) + "#$" + msg;
-        broadcast(p_chat, msg);
-      } else {
-        ++iter;
+          string msg = "NOTICE " + name + " left the chat or crashed";
+          msg = "client_leave" + "#$" + to_string(current_stamp) + "#$" + msg;
+          current_stamp++;
+          broadcast(p_chat, msg);
+        } else {
+          ++iter;
+        }
       }
     }
   }
+  else {
+    if (getLocalTime() - p_chat->leader_last_alive > 3) {
+      if (p_chat->has_joined) {
+        cout<<"NOTICE the current leader left the chat or crashed";
+        handle_election(p_chat, "");
+      }
+      else {
+        string msg = "join_request" + "#$" + m_name + "#$" + m_addr;
+        send_handler(msg, l_addr, p_chat);
+        p_chat->leader_last_alive = getLocalTime();
+      }
+    }
+  }
+  
   pthread_exit(NULL);
 }
 
@@ -326,19 +354,17 @@ int main(int argc, char *argv[]) {
 	else {
 		p_dchat->join_a_group(string(argv[1]), string(argv[2]));
 	}
-  pthread_t threads[3];
+  pthread_t threads[4];
 
   pthread_create(&threads[0], NULL, recv_msgs, (void *)p_dchat);
   pthread_create(&threads[1], NULL, send_msgs, (void *)p_dchat);
 
-  if (p_dchat->is_leader) {
-    pthread_create(&threads[2], NULL, check_alive, (void *)p_dchat);
-  } else {
-    pthread_create(&threads[2], NULL, send_heart_beat, (void *)p_dchat);
-  }
+  pthread_create(&threads[2], NULL, send_heart_beat, (void *)p_dchat);
+  pthread_create(&threads[3], NULL, check_alive, (void *)p_dchat);
   
   pthread_join(threads[0], NULL);
   pthread_join(threads[1], NULL);
   pthread_join(threads[2], NULL);
+  pthread_join(threads[3], NULL);
 	return 0;
 }

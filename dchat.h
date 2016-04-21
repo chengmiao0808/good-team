@@ -35,6 +35,7 @@ public:
 	string my_addr;
 	string my_name;
 	bool is_leader;
+	bool has_joined;
 
 	int current_stamp; // for event total ordering
 	map<int, string> msgs; // Store previous messages
@@ -67,7 +68,6 @@ public:
 	string get_ip_address();
 	void start_new_group(string l_name);
 	void join_a_group(string m_name, string l_addr);
-	// void elect_a_leader();
 };
 
 #endif
