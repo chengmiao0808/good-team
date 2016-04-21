@@ -1,6 +1,6 @@
 #include "dchat.h"
 #include "utility.h"
-#include "leader.h"
+#include "handler.h"
 #include <ifaddrs.h>
 #include <time.h>
 
@@ -228,7 +228,7 @@ void client_receive_handler(dchat* p_chat, string msg) {
   }
   else {
     if (p_chat->leader_stamp == stoi(message[1])) {
-      p_chat->leader_event_queue[message[2]].at(0) = msg;
+      p_chat->leader_event_queue.at(0) = msg;
       check_queue(p_chat, p_chat->leader_event_queue);
     }
     else {
@@ -331,7 +331,7 @@ void *check_alive(void* threadarg) {
     if (getLocalTime() - p_chat->leader_last_alive > 3) {
       if (p_chat->has_joined) {
         cout<<"NOTICE the current leader left the chat or crashed";
-        handle_election(p_chat, "");
+        handle_election(p_chat, vector<string>());
       }
       else {
         string msg = "join_request#$" + p_chat->my_name + "#$" + p_chat->my_addr;
