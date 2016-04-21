@@ -8,7 +8,7 @@ void send_handler(string msg, string other_addr, dchat *p_chat);
 void broadcast(dchat *p_chat, string msg);
 
 /*	Sequencer for normal message request	*/
-void handle_normal_request(dchat* p_chat, string message){ 
+void handle_normal_message(dchat* p_chat, string message){ 
 
   //command#$time_stamp#$user_name#$user_ip:user_port#$message
   vector<string> vec = split(message);
