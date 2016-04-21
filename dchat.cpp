@@ -105,7 +105,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
   string msg = "join_request#$" + m_name + "#$" + m_addr;
   send_handler(msg, l_addr, p_chat);
   p_chat->leader_last_alive = getLocalTime();
-
+  p_chat->leader_addr = l_addr;
   return 0;
 }
 
@@ -189,34 +189,34 @@ void check_queue(dchat *p_chat, deque<string> my_que) {
   int i;
   for (i = 0; my_que.at(i).empty()!=1; i++) {
     vector<string> message = split(my_que.at(i));
-    if (strcmp(message[0], "normal") == 0) {
+    if (message[0] == "normal") {
       handle_normal_message(p_chat, message);
     }
-    else if (strcmp(message[0], "join_request") == 0) {
+    else if (message[0] == "join_request") {
       handle_join_request(p_chat, message);
     }
-    else if (strcmp(message[0], "forward_join_request") == 0) {
+    else if (message[0] == "forward_join_request") {
       handle_forward_join_request(p_chat, message);
     }
-    else if (strcmp(message[0], "join_inform") == 0) {
+    else if (message[0] == "join_inform") {
       handle_join_inform(p_chat, message);
     } 
-    else if (strcmp(message[0], "join_response") == 0) {
+    else if (message[0] == "join_response") {
       handle_join_response(p_chat, message);
     }
-    else if (strcmp(message[0], "client_leave") == 0) {
+    else if (message[0] == "client_leave") {
       handle_client_leave(p_chat, message);
     }
-    else if (strcmp(message[0], "election") == 0) {
+    else if (message[0] == "election") {
       handle_election(p_chat, message);
     }
-    else if (strcmp(message[0], "new_leader") == 0) {
+    else if (message[0] == "new_leader") {
       handle_new_leader(p_chat, message);
     }
-    else if (strcmp(message[0], "refuse") == 0) {
+    else if (message[0] == "refuse") {
       handle_refuse(p_chat, message);
     }
-    else if (strcmp(message[0], "client_request") == 0) {
+    else if (message[0] == "client_request") {
       handle_client_request(p_chat, message);
     }
     else {
@@ -227,12 +227,12 @@ void check_queue(dchat *p_chat, deque<string> my_que) {
 
 void leader_receive_handler(dchat* p_chat, string msg) {
   vector<string> message = split(msg);
-  if (strcmp(message[0], "client_heartbeat") == 0) {
+  if (message[0] == "client_heartbeat") {
     leader_handle_client_heartbeat(p_chat, message);
   } 
   else {
     if (p_chat->current_member_stamp[message[2]] == stoi(message[1])) {
-      p_chat->member_event_queue[message[2]].at(i) = msg;
+      p_chat->member_event_queue[message[2]].at(0) = msg;
       check_queue(p_chat, p_chat->member_event_queue[message[2]]);
     }
     else {
@@ -243,12 +243,12 @@ void leader_receive_handler(dchat* p_chat, string msg) {
 
 void client_receive_handler(dchat* p_chat, string msg) {
   vector<string> message = split(msg);
-  if (strcmp(message[0], "leader_heartbeat") == 0) {
+  if (message[0] == "leader_heartbeat") {
     client_handle_leader_heartbeat(p_chat, message);
   }
   else {
     if (p_chat->leader_stamp == stoi(message[1])) {
-      p_chat->leader_event_queue[message[2]].at(i) = msg;
+      p_chat->leader_event_queue[message[2]].at(0) = msg;
       check_queue(p_chat, p_chat->leader_event_queue);
     }
     else {
@@ -281,7 +281,7 @@ void *send_msgs(void *threadarg) {
 
       string msg = "normal#$" + to_string(p_chat->current_stamp) + "#$" + line;
       p_chat->current_stamp++;
-      send_handler(msg, p_chat->leader, p_chat);
+      send_handler(msg, p_chat->leader_addr, p_chat);
     }
     //mtx.unlock();
   }
@@ -302,7 +302,7 @@ void *send_heart_beat(void *threadarg) {
     string msg = "client_heartbeat#$";
     while (true) {
       usleep(1000000);
-      send_handler(msg, p_chat->leader, p_chat);
+      send_handler(msg, p_chat->leader_addr, p_chat);
     }
   }
   pthread_exit(NULL);
@@ -319,8 +319,8 @@ void *check_alive(void* threadarg) {
           p_chat->member_last_alive.erase(iter++);
 
           string msg = "NOTICE " + name + " left the chat or crashed";
-          msg = "client_leave#$" + to_string(current_stamp) + "#$" + msg;
-          current_stamp++;
+          msg = "client_leave#$" + to_string(p_chat->current_stamp) + "#$" + msg;
+          p_chat->current_stamp++;
           broadcast(p_chat, msg);
         } else {
           ++iter;
@@ -335,8 +335,8 @@ void *check_alive(void* threadarg) {
         handle_election(p_chat, "");
       }
       else {
-        string msg = "join_request#$" + m_name + "#$" + m_addr;
-        send_handler(msg, l_addr, p_chat);
+        string msg = "join_request#$" + p_chat->my_name + "#$" + p_chat->my_addr;
+        send_handler(msg, p_chat->leader_addr, p_chat);
         p_chat->leader_last_alive = getLocalTime();
       }
     }
