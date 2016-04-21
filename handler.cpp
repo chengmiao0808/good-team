@@ -3,6 +3,39 @@
 
 using namespace std;
 
+void error(string err) {
+  perror(err.c_str());
+  exit(1);
+}
+
+void send_handler(string msg, string other_addr, dchat *p_chat) {
+  vector<string> vec_other = split_helper(other_addr, ":");
+  string ip_addr_other = vec_other.front();
+  string portno_other = vec_other.back();
+
+  bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
+  p_chat->other.sin_family = AF_INET;
+  p_chat->other.sin_addr.s_addr = inet_addr(ip_addr_other.c_str());
+  p_chat->other.sin_port = htons(stoi(portno_other));
+
+  char buff[2048];
+  bzero(buff, 2048);
+  strcpy(buff, msg.c_str());
+
+  p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
+  if (p_chat->num < 0) {
+      error("Error with sendto!\n");
+  }
+}
+
+void broadcast(dchat *p_chat, string msg) {
+
+  for (auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
+  //cout<<"\t this iter: \t"<< iter->first << endl;
+    if (iter->first == p_chat->leader_addr) continue; //dont send to leader herself
+    send_handler(msg, iter->first, p_chat);
+  }
+}
 
 void handle_normal_message(dchat* p_chat, vector<string> message){ 
 
@@ -18,20 +51,10 @@ void handle_normal_message(dchat* p_chat, vector<string> message){
   p_chat->current_member_stamp[user_addr]++;
 
   // broadcast messages
-  // int curr_time = p_chat->current_member_stamp[user_name];
-  // 	p_chat->member_event_queue[user_name].at(0) = msg;
-
-  	// for(auto iter = p_chat->member_event_queue[user_name].begin(); 
-  	// 	iter != p_chat->member_event_queue[user_name].end(); ){
-
-	  	// use leader's timestamp
-  		// string line = iter;
-  		// iter = p_chat->member_event_queue[user_name].erase(iter);
-	  	string line = vec[0] + "#$" + to_string(p_chat->leader_stamp)+ "#$" + vec[2]+ "#$" + vec[3] + "#$" + vec[4];
-      p_chat->msgs[p_chat->leader_stamp] = line;
-      p_chat->leader_stamp++;
-	  	broadcast(p_chat, line);
-	   // }
+	string line = vec[0] + "#$" + to_string(p_chat->leader_stamp)+ "#$" + vec[2]+ "#$" + vec[3] + "#$" + vec[4];
+  p_chat->msgs[p_chat->leader_stamp] = line;
+  p_chat->leader_stamp++;
+	broadcast(p_chat, line);
 }
 
 
@@ -224,5 +247,17 @@ void handle_new_leader(dchat* p_chat,vector<string> message){
   p_chat->leader_addr = new_leader_addr;
 
   cout<<"Notice "<< " new leader "<<new_leader_name<<" is hearing on "<<new_leader_addr<<endl; 
+}
+
+void handle_refuse(dchat *p_chat, vector<string> message) {
+
+}
+
+void handle_client_request(dchat *p_chat, vector<string> message) {
+
+}
+
+void handle_leader_request(dchat *p_chat, vector<string> message) {
+
 }
 

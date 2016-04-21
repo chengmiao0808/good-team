@@ -1,16 +1,9 @@
-#include "dchat.h"
-#include "utility.h"
 #include "handler.h"
 #include <ifaddrs.h>
 #include <time.h>
 
 using namespace std;
 
-
-void error(string err) {
-  perror(err.c_str());
-  exit(1);
-}
 
 string dchat::get_ip_address() {
   struct ifaddrs *p_ifaddrs, *p_ifa;
@@ -70,26 +63,6 @@ int bind_socket(dchat *p_chat, string my_addr) {
     return p_chat->sock2;
   }
   return 0;
-}
-
-void send_handler(string msg, string other_addr, dchat *p_chat) {
-  vector<string> vec_other = split_helper(other_addr, ":");
-  string ip_addr_other = vec_other.front();
-  string portno_other = vec_other.back();
-
-  bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
-  p_chat->other.sin_family = AF_INET;
-  p_chat->other.sin_addr.s_addr = inet_addr(ip_addr_other.c_str());
-  p_chat->other.sin_port = htons(stoi(portno_other));
-
-  char buff[2048];
-  bzero(buff, 2048);
-  strcpy(buff, msg.c_str());
-
-  p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
-  if (p_chat->num < 0) {
-      error("Error with sendto!\n");
-  }
 }
 
 int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m_name) {
@@ -157,15 +130,6 @@ void dchat::join_a_group(string m_name, string l_addr) {
   }
 }
 
-void broadcast(dchat *p_chat, string msg) {
-
-  for (auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
-  //cout<<"\t this iter: \t"<< iter->first << endl;
-    if (iter->first == p_chat->leader_addr) continue; //dont send to leader herself
-    send_handler(msg, iter->first, p_chat);
-  }
-}
-
 void check_queue(dchat *p_chat, deque<string> my_que) {
   int i;
   for (i = 0; my_que.at(i).empty()!=1; i++) {
@@ -209,7 +173,7 @@ void check_queue(dchat *p_chat, deque<string> my_que) {
 void leader_receive_handler(dchat* p_chat, string msg) {
   vector<string> message = split(msg);
   if (message[0] == "client_heartbeat") {
-    p_chat->member_last_alive[message[1]] == getLocalTime();
+    p_chat->member_last_alive[message[1]] = getLocalTime();
   } 
   else {
     if (p_chat->current_member_stamp[message[2]] == stoi(message[1])) {

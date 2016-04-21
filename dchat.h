@@ -21,8 +21,11 @@
 #include <iterator>
 #include <pthread.h>
 
+#include "utility.h"
+
 
 using namespace std;
+
 
 class dchat
 {
@@ -69,5 +72,6 @@ public:
 	void start_new_group(string l_name);
 	void join_a_group(string m_name, string l_addr);
 };
+
 
 #endif

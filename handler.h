@@ -3,6 +3,12 @@
 
 #include "dchat.h"
 
+void error(string err);
+
+void send_handler(string msg, string other_addr, dchat *p_chat);
+
+void broadcast(dchat *p_chat, string msg);
+
 void handle_normal_message(dchat *p_chat, vector<string> message);
 
 void handle_join_request(dchat *p_chat, vector<string> message);
