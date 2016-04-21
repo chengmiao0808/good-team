@@ -91,7 +91,7 @@ void handle_join_request(dchat* p_chat,  vector<string> message){
     memeber_list+= "#$"  + iter->second;
   } 
 
-  string response = "join_inform#$" 
+  string response = "join_response#$" 
         + to_string(p_chat->leader_stamp)+ "#$" 
         + p_chat->leader_addr + memeber_list;
 
@@ -139,6 +139,7 @@ void handle_join_response(dchat *p_chat, vector<string> message){
     string val = message[index+1];
     p_chat->all_members_list[key] = val;
   }
+  p_chat->has_joined = true;
 }	
 
 /* 	client_leave: when leader detect a client leaves or crashes, 

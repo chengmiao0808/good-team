@@ -114,6 +114,7 @@ void dchat::join_a_group(string m_name, string l_addr) {
     cout<<m_name<<" joining a new chat on "<<l_addr<<", listening on\n"<<m_addr<<"\n";
     int n = start_a_regular_member(this, l_addr, m_addr, m_name);
     if (n == 0) {
+      usleep(1000000);
       if (has_joined) {
         my_addr = m_addr;
         cout<<"Succeeded, current users:\n";
