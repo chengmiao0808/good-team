@@ -1,3 +1,7 @@
+#ifndef LEADER_H
+#define LEADER_H
+
+
 #include "dchat.h"
 #include "utility.h"
 #include <stdlib.h>     /* atoi */
@@ -8,10 +12,10 @@ void send_handler(string msg, string other_addr, dchat *p_chat);
 void broadcast(dchat *p_chat, string msg);
 
 /*	Sequencer for normal message request	*/
-void handle_normal_message(dchat* p_chat, string message){ 
+void handle_normal_message(dchat* p_chat, vector<string> message){ 
 
   //command#$time_stamp#$user_name#$user_ip:user_port#$message
-  vector<string> vec = split(message);
+  vector<string> vec = message;
   string cmd = vec[0];
   int msg_time = stoi(vec[1]); 
   string user_name =vec[2];
@@ -101,3 +105,4 @@ void client_join_inform(dchat* p_chat, string new_user_name, string new_user_add
 void client_join_response(dchat* p_chat, string new_user_addr);
 
 
+#endif LEADER_H
