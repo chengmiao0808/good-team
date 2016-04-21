@@ -209,7 +209,7 @@ void check_queue(dchat *p_chat, deque<string> my_que) {
 void leader_receive_handler(dchat* p_chat, string msg) {
   vector<string> message = split(msg);
   if (message[0] == "client_heartbeat") {
-    member_last_alive[message[1]] == getLocalTime();
+    p_chat->member_last_alive[message[1]] == getLocalTime();
   } 
   else {
     if (p_chat->current_member_stamp[message[2]] == stoi(message[1])) {
@@ -230,7 +230,7 @@ void leader_receive_handler(dchat* p_chat, string msg) {
 void client_receive_handler(dchat* p_chat, string msg) {
   vector<string> message = split(msg);
   if (message[0] == "leader_heartbeat") {
-    leader_last_alive = getLocalTime();
+    p_chat->leader_last_alive = getLocalTime();
   }
   else {
     if (p_chat->leader_stamp == stoi(message[1])) {
