@@ -165,6 +165,38 @@ void broadcast(dchat *p_chat, string msg) {
   }
 }
 
+void leader_receive_handler(dchat* p_chat, string msg) {
+  vector<string> message = split(msg);
+  if (message[0] == "client_heartbeat") {
+    leader_handle_client_heartbeat(p_chat, message);
+  } 
+  else {
+    if (p_chat->current_member_stamp[message[2]] == stoi(message[1])) {
+      p_chat->member_event_queue[message[2]].at(0) = msg;
+      check_queue(p_chat, p_chat->member_event_queue[message[2]]);
+    }
+    else {
+ 
+    }
+  }
+}
+
+void client_receive_handler(dchat* p_chat, string msg) {
+  vector<string> message = split(msg);
+  if (message[0] == "leader_heartbeat") {
+    client_handle_leader_heartbeat(p_chat, message);
+  }
+  else {
+    if (p_chat->leader_stamp == stoi(message[1])) {
+      p_chat->leader_event_queue[message[2]].at(0) = msg;
+      check_queue(p_chat, p_chat->leader_event_queue);
+    }
+    else {
+
+    }
+  }
+}
+
 void *recv_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
 
@@ -224,39 +256,6 @@ void check_queue(dchat *p_chat, deque<string> my_que) {
     }
   }
 }
-
-void leader_receive_handler(dchat* p_chat, string msg) {
-  vector<string> message = split(msg);
-  if (message[0] == "client_heartbeat") {
-    leader_handle_client_heartbeat(p_chat, message);
-  } 
-  else {
-    if (p_chat->current_member_stamp[message[2]] == stoi(message[1])) {
-      p_chat->member_event_queue[message[2]].at(0) = msg;
-      check_queue(p_chat, p_chat->member_event_queue[message[2]]);
-    }
-    else {
- 
-    }
-  }
-}
-
-void client_receive_handler(dchat* p_chat, string msg) {
-  vector<string> message = split(msg);
-  if (message[0] == "leader_heartbeat") {
-    client_handle_leader_heartbeat(p_chat, message);
-  }
-  else {
-    if (p_chat->leader_stamp == stoi(message[1])) {
-      p_chat->leader_event_queue[message[2]].at(0) = msg;
-      check_queue(p_chat, p_chat->leader_event_queue);
-    }
-    else {
-
-    }
-  }
-}
-
 
 void *send_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
