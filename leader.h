@@ -1,6 +1,11 @@
 #include "dchat.h"
 #include "utility.h"
+#include <stdlib.h>     /* atoi */
+#include <string>
 
+
+void send_handler(string msg, string other_addr, dchat *p_chat);
+void broadcast(dchat *p_chat, string msg);
 
 /*	Sequencer for normal message request	*/
 void handle_normal_request(dchat* p_chat, string message){ 
@@ -8,7 +13,7 @@ void handle_normal_request(dchat* p_chat, string message){
   //command#$time_stamp#$user_name#$user_ip:user_port#$message
   vector<string> vec = split(message);
   string cmd = vec[0];
-  int msg_time = atoi(vec[1]); 
+  int msg_time = stoi(vec[1]); 
   string user_name =vec[2];
   string user_addr =vec[3];
   string msg = vec[4];
@@ -27,7 +32,7 @@ void handle_normal_request(dchat* p_chat, string message){
 	  	// use leader's timestamp
   		// string line = iter;
   		// iter = p_chat->member_event_queue[user_name].erase(iter);
-	  	line = vec[0] + "#$" + to_string(p_chat->leader_stamp)+ "#$" + vec[2]+ "#$" + vec[3] + "#$" + line;
+	  	string line = vec[0] + "#$" + to_string(p_chat->leader_stamp)+ "#$" + vec[2]+ "#$" + vec[3] + "#$" + vec[4];
       p_chat->msgs[p_chat->leader_stamp] = line;
       p_chat->leader_stamp++;
 	  	broadcast(p_chat, line);
@@ -42,8 +47,8 @@ void handle_normal_request(dchat* p_chat, string message){
 void handle_join_request(dchat* p_chat,  vector<string> message){
 
   // 1. add new member into the map
-  new_user_name = message[2];
-  new_user_addr = message[3];
+  string new_user_name = message[2];
+  string new_user_addr = message[3];
   deque<string> new_deque(10);
   p_chat->all_members_list[new_user_addr] = new_user_name;    //add new_user into the list 
   p_chat->member_event_queue[new_user_name] = new_deque;      //new_user's msg queue
@@ -68,11 +73,11 @@ void handle_join_request(dchat* p_chat,  vector<string> message){
     memeber_list+= "#$"  + iter->second;
   } 
 
-  string line = "join_inform#$" 
+  string response = "join_inform#$" 
         + to_string(p_chat->leader_stamp)+ "#$" 
         + p_chat->leader_addr + memeber_list;
 
-  send_handler(line, new_user_addr, p_chat);
+  send_handler(response, new_user_addr, p_chat);
   p_chat->leader_stamp++;
 }
 
