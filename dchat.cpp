@@ -195,6 +195,9 @@ void check_queue(dchat *p_chat, deque<string> my_que) {
     else if (strcmp(message[0], "join_request") == 0) {
       handle_join_request(p_chat, message);
     }
+    else if (strcmp(message[0], "forward_join_request") == 0) {
+      handle_forward_join_request(p_chat, message);
+    }
     else if (strcmp(message[0], "join_inform") == 0) {
       handle_join_inform(p_chat, message);
     } 
