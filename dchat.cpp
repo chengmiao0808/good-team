@@ -165,6 +165,46 @@ void broadcast(dchat *p_chat, string msg) {
   }
 }
 
+void check_queue(dchat *p_chat, deque<string> my_que) {
+  int i;
+  for (i = 0; my_que.at(i).empty()!=1; i++) {
+    vector<string> message = split(my_que.at(i));
+    if (message[0] == "normal") {
+      handle_normal_message(p_chat, message);
+    }
+    else if (message[0] == "join_request") {
+      handle_join_request(p_chat, message);
+    }
+    else if (message[0] == "forward_join_request") {
+      handle_forward_join_request(p_chat, message);
+    }
+    else if (message[0] == "join_inform") {
+      handle_join_inform(p_chat, message);
+    } 
+    else if (message[0] == "join_response") {
+      handle_join_response(p_chat, message);
+    }
+    else if (message[0] == "client_leave") {
+      handle_client_leave(p_chat, message);
+    }
+    else if (message[0] == "election") {
+      handle_election(p_chat, message);
+    }
+    else if (message[0] == "new_leader") {
+      handle_new_leader(p_chat, message);
+    }
+    else if (message[0] == "refuse") {
+      handle_refuse(p_chat, message);
+    }
+    else if (message[0] == "client_request") {
+      handle_client_request(p_chat, message);
+    }
+    else {
+      handle_leader_request(p_chat, message);
+    }
+  }
+}
+
 void leader_receive_handler(dchat* p_chat, string msg) {
   vector<string> message = split(msg);
   if (message[0] == "client_heartbeat") {
@@ -215,46 +255,6 @@ void *recv_msgs(void *threadarg) {
   }
 
   pthread_exit(NULL);
-}
-
-void check_queue(dchat *p_chat, deque<string> my_que) {
-  int i;
-  for (i = 0; my_que.at(i).empty()!=1; i++) {
-    vector<string> message = split(my_que.at(i));
-    if (message[0] == "normal") {
-      handle_normal_message(p_chat, message);
-    }
-    else if (message[0] == "join_request") {
-      handle_join_request(p_chat, message);
-    }
-    else if (message[0] == "forward_join_request") {
-      handle_forward_join_request(p_chat, message);
-    }
-    else if (message[0] == "join_inform") {
-      handle_join_inform(p_chat, message);
-    } 
-    else if (message[0] == "join_response") {
-      handle_join_response(p_chat, message);
-    }
-    else if (message[0] == "client_leave") {
-      handle_client_leave(p_chat, message);
-    }
-    else if (message[0] == "election") {
-      handle_election(p_chat, message);
-    }
-    else if (message[0] == "new_leader") {
-      handle_new_leader(p_chat, message);
-    }
-    else if (message[0] == "refuse") {
-      handle_refuse(p_chat, message);
-    }
-    else if (message[0] == "client_request") {
-      handle_client_request(p_chat, message);
-    }
-    else {
-      handle_leader_request(p_chat, message);
-    }
-  }
 }
 
 void *send_msgs(void *threadarg) {
