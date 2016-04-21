@@ -9,11 +9,11 @@ void handle_join_request(dchat *p_chat, vector<string> message);  // Lin
 
 void handle_forward_join_request(dchat *p_chat, vector<string> message);  // Lin
 
-void handle_join_inform(dchat *p_chat, vector<string> message);  
+void handle_join_inform(dchat *p_chat, vector<string> message);  // Lin
 
-void handle_join_response(dchat *p_chat, vector<string> message);	
+void handle_join_response(dchat *p_chat, vector<string> message);	// Lin
 
-void handle_client_leave(dchat *p_chat, vector<string> message);
+void handle_client_leave(dchat *p_chat, vector<string> message); // Lin
 
 void handle_election(dchat *p_chat, vector<string> message); //	Lin
 
