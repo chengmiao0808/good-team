@@ -81,5 +81,5 @@ client_leave: when leader detect a client leaves or crashes, he would send a lea
 election: when client detect leader leaves or crashes, he would send a election message to all clients that have higher ip:port than himself. command#$time_stamp#$client_ip:client:port (command is election)
 new_leader_create: when a new leader is elected, we would multicast the msg to every client. command#$time_stamp#$leader_ip:leader_port#$leader_name. (command is new_leader)
 refuse: when client's election is refused, he would send a message back to the client who sends election. command#$time_stamp#$client_ip:client_port. (command is refuse)
-client_request: when client find a message is missing, he asks leader for the message to send. command#$time_stamp#$client_ip:client_port#$client_name#$time_stamp_of_msg_asked. (command is client_request)
-leader_request: when leader find a message is missing, he asks client for the message to send. command#$time_stamp#$leader_ip:leader_port#$leader_name#$time_stamp_of_msg_asked. (command is leader_request)
+client_request: when client find a message is missing, he asks leader for the message to send. command#$client_ip:client_port#$client_name#$time_stamp_of_msg_asked. (command is client_request)
+leader_request: when leader find a message is missing, he asks client for the message to send. command#$leader_ip:leader_port#$leader_name#$time_stamp_of_msg_asked. (command is leader_request)

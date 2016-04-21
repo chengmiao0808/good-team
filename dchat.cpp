@@ -120,7 +120,8 @@ void dchat::start_new_group(string l_name) {
     string l_addr = get_ip_address()+":"+to_string(portno);
     int n = bind_socket(this, l_addr);
     if (n == 0) {
-      this->leader_addr = l_addr;
+      leader_addr = l_addr;
+      my_addr = l_addr;
       all_members_list[l_addr] = l_name;
       cout<<l_name<<" started a new chat, listening on "<<l_addr<<"\n"
         <<"Succeeded, current users:\n"<<l_name<<" "<<l_addr<<" (Leader)\n"
@@ -160,7 +161,7 @@ void broadcast(dchat *p_chat, string msg) {
 
   for (auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
   //cout<<"\t this iter: \t"<< iter->first << endl;
-    if(iter->first == p_chat->leader_addr) continue; //dont send to leader herself
+    if (iter->first == p_chat->leader_addr) continue; //dont send to leader herself
     send_handler(msg, iter->first, p_chat);
   }
 }
@@ -208,7 +209,7 @@ void check_queue(dchat *p_chat, deque<string> my_que) {
 void leader_receive_handler(dchat* p_chat, string msg) {
   vector<string> message = split(msg);
   if (message[0] == "client_heartbeat") {
-    leader_handle_client_heartbeat(p_chat, message);
+    member_last_alive[message[1]] == getLocalTime();
   } 
   else {
     if (p_chat->current_member_stamp[message[2]] == stoi(message[1])) {
@@ -216,7 +217,12 @@ void leader_receive_handler(dchat* p_chat, string msg) {
       check_queue(p_chat, p_chat->member_event_queue[message[2]]);
     }
     else {
- 
+      if (p_chat->current_member_stamp[message[2]] < stoi(message[1])) {
+        int i = stoi(message[1]) - p_chat->current_member_stamp[message[2]];
+        p_chat->member_event_queue[message[2]].at(i) = msg;
+        string req = "leader_request#$" + p_chat->my_addr + "#$" + p_chat->my_name + "#$" + to_string(p_chat->current_member_stamp[message[2]]);
+        send_handler(req, message[2], p_chat);
+      }
     }
   }
 }
@@ -224,7 +230,7 @@ void leader_receive_handler(dchat* p_chat, string msg) {
 void client_receive_handler(dchat* p_chat, string msg) {
   vector<string> message = split(msg);
   if (message[0] == "leader_heartbeat") {
-    client_handle_leader_heartbeat(p_chat, message);
+    leader_last_alive = getLocalTime();
   }
   else {
     if (p_chat->leader_stamp == stoi(message[1])) {
@@ -232,7 +238,12 @@ void client_receive_handler(dchat* p_chat, string msg) {
       check_queue(p_chat, p_chat->leader_event_queue);
     }
     else {
-
+      if (p_chat->leader_stamp < stoi(message[1])) {
+        int i = stoi(message[1]) - p_chat->leader_stamp;
+        p_chat->leader_event_queue.at(i) = msg;
+        string req = "client_request#$" + p_chat->my_addr + "#$" + p_chat->my_name + "#$" + to_string(p_chat->leader_stamp);
+        send_handler(req, p_chat->leader_addr, p_chat);
+      }
     }
   }
 }
@@ -253,7 +264,6 @@ void *recv_msgs(void *threadarg) {
       client_receive_handler(p_chat, (string) buff);
     }
   }
-
   pthread_exit(NULL);
 }
 
@@ -261,19 +271,15 @@ void *send_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
 
   for(;;) {
-    //mtx.lock();
     if (p_chat->is_leader == true) {
 
-      //cout<<"What's on your mind?(You are the leader)"<<endl;
       string line;
       getline(cin, line);
       line = p_chat->my_name + ":\t" + line;
-      broadcast( p_chat, line);
-      //cout<<"Successfully broadcast leader's msg\n"<<endl;    
+      broadcast( p_chat, line); 
 
     } else {// non-leader member
 
-      //cout<<"What's on your mind?(You are not the leader)"<<endl;
       string line;
       getline(cin, line);
       line = p_chat->my_name + ":\t" + line;
@@ -282,7 +288,6 @@ void *send_msgs(void *threadarg) {
       p_chat->current_stamp++;
       send_handler(msg, p_chat->leader_addr, p_chat);
     }
-    //mtx.unlock();
   }
   pthread_exit(NULL);
 }
@@ -291,14 +296,14 @@ void *send_heart_beat(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
   //cout << "HERE" << endl;
   if (p_chat->is_leader) {
-    string msg = "leader_heartbeat#$";
+    string msg = "leader_heartbeat#$" + p_chat->my_addr;
     while (true) {
       usleep(1000000);
       broadcast(p_chat, msg);
     }
   }
   else {
-    string msg = "client_heartbeat#$";
+    string msg = "client_heartbeat#$" + p_chat->my_addr;
     while (true) {
       usleep(1000000);
       send_handler(msg, p_chat->leader_addr, p_chat);
