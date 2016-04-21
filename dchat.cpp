@@ -50,7 +50,7 @@ string dchat::get_ip_address() {
 }
 
 int bind_socket(dchat *p_chat, string my_addr) {
-  vector<string> vec = split(my_addr, ":");
+  vector<string> vec = split_helper(my_addr, ":");
   string ip_addr = vec.front();
   string portno = vec.back();
   
