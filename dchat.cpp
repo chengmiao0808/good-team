@@ -72,9 +72,29 @@ int bind_socket(dchat *p_chat, string my_addr) {
   return 0;
 }
 
+void send_handler(string msg, string other_addr, dchat *p_chat) {
+  vector<string> vec_other = split_helper(other_addr, ":");
+  string ip_addr_other = vec_other.front();
+  string portno_other = vec_other.back();
+
+  bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
+  p_chat->other.sin_family = AF_INET;
+  p_chat->other.sin_addr.s_addr = inet_addr(ip_addr_other.c_str());
+  p_chat->other.sin_port = htons(stoi(portno_other));
+
+  char buff[2048];
+  bzero(buff, 2048);
+  strcpy(buff, msg.c_str());
+
+  p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
+  if (p_chat->num < 0) {
+      error("Error with sendto!\n");
+  }
+}
+
 int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m_name) {
   p_chat->has_joined = false;
-  vector<string> vec_me = split(m_addr, ":");
+  vector<string> vec_me = split_helper(m_addr, ":");
   string ip_addr_me = vec_me.front();
   string portno_me = vec_me.back();
 
@@ -82,7 +102,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
   if (n < 0)
     return n;
 
-  string msg = "join_request" + "#$" + m_name + "#$" + m_addr;
+  string msg = "join_request#$" + m_name + "#$" + m_addr;
   send_handler(msg, l_addr, p_chat);
   p_chat->leader_last_alive = getLocalTime();
 
@@ -100,7 +120,7 @@ void dchat::start_new_group(string l_name) {
     string l_addr = get_ip_address()+":"+to_string(portno);
     int n = bind_socket(this, l_addr);
     if (n == 0) {
-      leader = l_addr;
+      this->leader_addr = l_addr;
       all_members_list[l_addr] = l_name;
       cout<<l_name<<" started a new chat, listening on "<<l_addr<<"\n"
         <<"Succeeded, current users:\n"<<l_name<<" "<<l_addr<<" (Leader)\n"
@@ -126,7 +146,7 @@ void dchat::join_a_group(string m_name, string l_addr) {
         typedef map<string, string>::iterator it_type;
         for (it_type iter = all_members_list.begin(); iter != all_members_list.end(); iter++) {
           cout<<iter->second<<" "<<iter->first;
-          if (iter->first == leader)
+          if (iter->first == leader_addr)
             cout<<" (Leader)";
           cout<<"\n";
         }
@@ -136,31 +156,11 @@ void dchat::join_a_group(string m_name, string l_addr) {
   }
 }
 
-void send_handler(string msg, string other_addr, dchat *p_chat) {
-  vector<string> vec_other = split(other_addr, ":");
-  string ip_addr_other = vec_other.front();
-  string portno_other = vec_other.back();
-
-  bzero((char *) &(p_chat->other), sizeof(p_chat->other)); 
-  p_chat->other.sin_family = AF_INET;
-  p_chat->other.sin_addr.s_addr = inet_addr(ip_addr_other.c_str());
-  p_chat->other.sin_port = htons(stoi(portno_other));
-
-  char buff[2048];
-  bzero(buff, 2048);
-  strcpy(buff, msg.c_str());
-
-  p_chat->num = sendto(p_chat->sock, buff, strlen(buff), 0, (struct sockaddr *) &(p_chat->other), sizeof(p_chat->other));
-  if (p_chat->num < 0) {
-      error("Error with sendto!\n");
-  }
-}
-
 void broadcast(dchat *p_chat, string msg) {
 
   for (auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
   //cout<<"\t this iter: \t"<< iter->first << endl;
-    if(iter->first == p_chat->leader) continue; //dont send to leader herself
+    if(iter->first == p_chat->leader_addr) continue; //dont send to leader herself
     send_handler(msg, iter->first, p_chat);
   }
 }
@@ -279,7 +279,7 @@ void *send_msgs(void *threadarg) {
       getline(cin, line);
       line = p_chat->my_name + ":\t" + line;
 
-      string msg = "normal" + "#$" + to_string(p_chat->current_stamp) + "#$" + line;
+      string msg = "normal#$" + to_string(p_chat->current_stamp) + "#$" + line;
       p_chat->current_stamp++;
       send_handler(msg, p_chat->leader, p_chat);
     }
@@ -292,14 +292,14 @@ void *send_heart_beat(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
   //cout << "HERE" << endl;
   if (p_chat->is_leader) {
-    string msg = "leader_heartbeat" + "#$";
+    string msg = "leader_heartbeat#$";
     while (true) {
       usleep(1000000);
       broadcast(p_chat, msg);
     }
   }
   else {
-    string msg = "client_heartbeat" + "#$";
+    string msg = "client_heartbeat#$";
     while (true) {
       usleep(1000000);
       send_handler(msg, p_chat->leader, p_chat);
@@ -319,7 +319,7 @@ void *check_alive(void* threadarg) {
           p_chat->member_last_alive.erase(iter++);
 
           string msg = "NOTICE " + name + " left the chat or crashed";
-          msg = "client_leave" + "#$" + to_string(current_stamp) + "#$" + msg;
+          msg = "client_leave#$" + to_string(current_stamp) + "#$" + msg;
           current_stamp++;
           broadcast(p_chat, msg);
         } else {
@@ -335,7 +335,7 @@ void *check_alive(void* threadarg) {
         handle_election(p_chat, "");
       }
       else {
-        string msg = "join_request" + "#$" + m_name + "#$" + m_addr;
+        string msg = "join_request#$" + m_name + "#$" + m_addr;
         send_handler(msg, l_addr, p_chat);
         p_chat->leader_last_alive = getLocalTime();
       }
