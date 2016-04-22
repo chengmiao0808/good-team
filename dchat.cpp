@@ -294,6 +294,7 @@ void *send_msgs(void *threadarg) {
                   + line;
                   
       p_chat->current_stamp++;
+      cout << msg << endl;
       send_handler(msg, p_chat->leader_addr, p_chat);
     }
   }
