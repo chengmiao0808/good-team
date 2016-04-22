@@ -122,11 +122,11 @@ void dchat::join_a_group(string m_name, string l_addr) {
     int portno = rand() % 2000 + 8000;
     string m_addr = get_ip_address()+":"+to_string(portno);
     cout<<m_name<<" joining a new chat on "<<l_addr<<", listening on\n"<<m_addr<<"\n";
+    my_addr = m_addr;
     int n = start_a_regular_member(this, l_addr, m_addr, m_name);
     if (n == 0) {
       usleep(1000000);
       if (has_joined) {
-        my_addr = m_addr;
         cout<<"Succeeded, current users:\n";
         typedef map<string, string>::iterator it_type;
         for (it_type iter = all_members_list.begin(); iter != all_members_list.end(); iter++) {
