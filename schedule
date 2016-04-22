@@ -73,7 +73,7 @@ Utility: for some utility functions (Yilun Fu and Miao Cheng)
 Message:
 normal_message: when client sends a normal message. command#$time_stamp#$user_ip:user_port#$user_name#$message (command is normal)
 client_join_request: when client sends a join request to leader/other client. command#$my_ip:my_port#$user_name (command is join_request)
-client_join_inform: when leader receives a join request, multicast the join_inform to all the current clients command#$leader_ip:leader_port#$join_username#$all_member_addresses (command is join_inform)
+client_join_inform: when leader receives a join request, multicast the join_inform to all the current clients command#$time_stamp#$leader_ip:leader_port#$new_user_address#$all_member_addresses (command is join_inform)
 client_heartbeat: client would send his heartbeat to leader every fixed seconds. command#$my_ip:my_port (command is client_heartbeat)
 leader_heartbeat: leader would multicast his heartbeat to every client every fixed seconds. command#$leader_ip:leader_port(command is leader_heartbeat)
 client_leave: when leader detect a client leaves or crashes, he would send a leave message to every client. command#$time_stamp#$client_leave_ip:client_leave_port#$message (command is client_leave)

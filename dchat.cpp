@@ -85,7 +85,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
     error("Error with recvfrom!\n");
   }
   vector<string> message = split(buff);
-  handle_join_response(p_chat, message);  
+  handle_join_inform(p_chat, message);  
 
   p_chat->leader_last_alive = getLocalTime();
   p_chat->leader_addr = l_addr;

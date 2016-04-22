@@ -88,24 +88,11 @@ void handle_join_request(dchat* p_chat,  vector<string> message){
     memeber_list+= "#$"  + iter->second;
   } 
 
-  string response = "join_response#$" 
+  string inform = "join_inform#$" 
         + to_string(p_chat->leader_stamp)+ "#$" 
-        + p_chat->leader_addr + memeber_list;
-
-  send_handler(response, new_user_addr, p_chat);
-  cout<< "leader_stamp: \t"<<p_chat->leader_stamp<<endl;
-
+        + p_chat->leader_addr + "#$" + new_user_name + "#$" + memeber_list;
 
   // 3. broadcast the "Notice xxxx joined on xxxxx""
-  p_chat->leader_stamp++;
-  p_chat->current_stamp++;
-  string line = "NOTICE " + new_user_name + " joined on " + new_user_addr;
-  line = "join_inform#$" 
-        + to_string(p_chat->leader_stamp)+ "#$" 
-        + new_user_name + "#$" 
-        + new_user_addr + "#$" 
-        + line;
-
   broadcast(p_chat, line);
   cout<< "leader_stamp: \t"<<p_chat->leader_stamp<<endl;
 
@@ -121,41 +108,28 @@ void handle_forward_join_request(dchat *p_chat, vector<string> message){
 }
 
 /*
-	command#$time_stamp#$client_ip:client_port#$username#$message (command is join_inform)
+	command#$time_stamp#$leader_ip:leader_port#$new_user_address#$all_member_addresses (command is join_inform)
 */
 void handle_join_inform(dchat *p_chat, vector<string> message){
   string cmd = message[0];
-  int leader_timestamp = stoi(message[1]); 
-  string new_user_addr = message[2];
-  string new_user_name = message[3];
-  string msg = message[4];
-
-  cout<<msg<<endl;
-  p_chat->current_stamp = leader_timestamp;
-  p_chat->all_members_list[new_user_addr] = new_user_name;
-
-}  
-
-/*command#$time_stamp#$leader_ip:leader_port#$first_member_ip:first_member_port#$first_member_name#$...(command is join_response)
-*/
-void handle_join_response(dchat *p_chat, vector<string> message){
-  
-  string cmd = message[0];
   int leader_timestamp = stoi(message[1]) + 1;  // add 1 for leader_stamp  
   string leader_addr = message[2];
+  string new_user_address = message[3];
 
-  p_chat->current_stamp = leader_timestamp;
   p_chat->leader_addr = leader_addr;
   p_chat->leader_stamp = leader_timestamp;
-  for(int index = 3; index<message.size(); index+=2) {
+  for(int index = 4; index<message.size(); index+=2) {
     string key = message[index];
     string val = message[index+1];
     p_chat->all_members_list[key] = val;
   }
-  p_chat->has_joined = true;
+  if (p_chat->my_addr == join_user_address) {
+    p_chat->has_joined = true;
+  }
+    
+  cout<<"NOTICE "<<p_chat->all_members_list[new_user_address]<<" joined on "<<new_user_address<<endl;
 
-  cout<<"Join the chat room "<<p_chat->leader_addr<<" with leader_stamp: "<< p_chat->leader_stamp <<endl;
-}	
+}  
 
 /* 	client_leave: when leader detect a client leaves or crashes, 
 	he would send a leave message to every client. 
