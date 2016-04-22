@@ -277,6 +277,8 @@ void *send_msgs(void *threadarg) {
                   + p_chat->my_name + "#$" 
                   + line;
 
+      p_chat->current_stamp++;
+      p_chat->leader_stamp = p_chat->current_stamp;
       cout<<"You input:\t"<<msg<<endl;
 
       broadcast( p_chat, msg); 

@@ -49,7 +49,7 @@ void handle_normal_message(dchat* p_chat, vector<string> message){
   string msg = vec[4];
 
   // update count of the memeber
-  if (p_chat->is_leader && user_addr.compare(p_chat->my_addr) != 0) {
+  if (p_chat->is_leader) {
     p_chat->current_member_stamp[user_addr]++;
 
     // broadcast messages
