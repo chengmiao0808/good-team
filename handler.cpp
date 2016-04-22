@@ -239,7 +239,7 @@ void handle_new_leader(dchat* p_chat,vector<string> message){
 }
 
 void handle_refuse(dchat *p_chat, vector<string> message) {
-
+  
 }
 
 void handle_client_request(dchat *p_chat, vector<string> message) {

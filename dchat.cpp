@@ -166,11 +166,8 @@ void check_queue(dchat *p_chat, deque<string> my_que) {
     else if (message[0] == "election") {
       handle_election(p_chat, message);
     }
-    else if (message[0] == "new_leader") {
-      handle_new_leader(p_chat, message);
-    }
     else {
-      handle_refuse(p_chat, message);
+      handle_new_leader(p_chat, message);
     }
   }
 }
