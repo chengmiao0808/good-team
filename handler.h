@@ -13,8 +13,6 @@ void handle_normal_message(dchat *p_chat, vector<string> message);
 
 void handle_join_request(dchat *p_chat, vector<string> message);
 
-void handle_forward_join_request(dchat *p_chat, vector<string> message);
-
 void handle_join_inform(dchat *p_chat, vector<string> message);
 
 void handle_client_leave(dchat *p_chat, vector<string> message);

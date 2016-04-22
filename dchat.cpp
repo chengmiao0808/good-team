@@ -148,12 +148,6 @@ void check_queue(dchat *p_chat, deque<string> my_que) {
     if (message[0] == "normal") {
       handle_normal_message(p_chat, message);
     }
-    else if (message[0] == "join_request") {
-      handle_join_request(p_chat, message);
-    }
-    else if (message[0] == "forward_join_request") {
-      handle_forward_join_request(p_chat, message);
-    }
     else if (message[0] == "join_inform") {
       handle_join_inform(p_chat, message);
     }
@@ -213,6 +207,9 @@ void client_receive_handler(dchat* p_chat, string msg) {
   vector<string> message = split(msg);
   if (message[0] == "leader_heartbeat") {
     p_chat->leader_last_alive = getLocalTime();
+  }
+  else if (message[0] == "join_request") {
+    handle_join_request(p_chat, message);
   }
   else {
     cout<<"Client's recorded leader_stamp:\t"<<p_chat->leader_stamp;

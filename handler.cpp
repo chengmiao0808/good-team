@@ -71,41 +71,38 @@ void handle_normal_message(dchat* p_chat, vector<string> message){
 */
 void handle_join_request(dchat* p_chat,  vector<string> message){
 
-  // 1. add new member into the map
-  string new_user_name = message[1];
-  string new_user_addr = message[2];
-  deque<string> new_deque(10);
-  p_chat->all_members_list[new_user_addr] = new_user_name;    //add new_user into the list 
-  p_chat->member_event_queue[new_user_addr] = new_deque;      //new_user's msg queue
-  p_chat->current_member_stamp[new_user_addr] = 0;            //new_user's msg count
-  p_chat->member_last_alive[new_user_addr] = getLocalTime();  //new_user's last alive time
-  cout<<"New member's name:\t"<<p_chat->all_members_list[new_user_addr]<<endl;
+  if (p_chat->is_leader) {
+    // 1. add new member into the map
+    string new_user_name = message[1];
+    string new_user_addr = message[2];
+    deque<string> new_deque(10);
+    p_chat->all_members_list[new_user_addr] = new_user_name;    //add new_user into the list 
+    p_chat->member_event_queue[new_user_addr] = new_deque;      //new_user's msg queue
+    p_chat->current_member_stamp[new_user_addr] = 0;            //new_user's msg count
+    p_chat->member_last_alive[new_user_addr] = getLocalTime();  //new_user's last alive time
+    cout<<"New member's name:\t"<<p_chat->all_members_list[new_user_addr]<<endl;
 
-  // 2. send member list to the new member
+    // 2. send member list to the new member
     /* Create the member list  <addr#$name> */ 
-  string memeber_list = "";
-  for (auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
-    memeber_list += "#$"  + iter->first;
-    memeber_list += "#$"  + iter->second;
-  } 
+    string memeber_list = "";
+    for (auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
+      memeber_list += "#$"  + iter->first;
+      memeber_list += "#$"  + iter->second;
+    } 
 
-  string inform = "join_inform#$" 
+    string inform = "join_inform#$" 
         + to_string(p_chat->leader_stamp)+ "#$" 
         + p_chat->leader_addr + "#$" + new_user_addr + "#$" + memeber_list;
 
-  // 3. broadcast the "Notice xxxx joined on xxxxx""
-  broadcast(p_chat, inform);
-  cout<< "leader_stamp: \t"<<p_chat->leader_stamp<<endl;
-
-}
-
-/*
-    command#$user_name#$my_ip:my_port (command is join_request)
-*/
-void handle_forward_join_request(dchat *p_chat, vector<string> message){
-  string forward_msg = message[0] + "#$" + message[1] + "#$" + message[2];
-  string other_addr = p_chat->leader_addr;
-  send_handler(forward_msg, other_addr, p_chat); 
+    // 3. broadcast the "Notice xxxx joined on xxxxx""
+    broadcast(p_chat, inform);
+    cout<< "leader_stamp: \t"<<p_chat->leader_stamp<<endl;
+  }
+  else {
+    string forward_msg = message[0] + "#$" + message[1] + "#$" + message[2];
+    string other_addr = p_chat->leader_addr;
+    send_handler(forward_msg, other_addr, p_chat); 
+  }
 }
 
 /*
