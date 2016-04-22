@@ -74,9 +74,19 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
   int n = bind_socket(p_chat, m_addr);
   if (n < 0)
     return n;
-
-  string msg = "join_request#$" + m_name + "#$" + m_addr;
+  p_chat->current_stamp = getLocalTime();
+  string msg = "join_request#$"+ to_string(p_chat->current_stamp)+ "#$" + m_name + "#$" + m_addr;
   send_handler(msg, l_addr, p_chat);
+  
+  char buff[2048];
+  bzero(buff, 2048);
+  p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
+  if (p_chat-> num < 0) {
+    error("Error with recvfrom!\n");
+  }
+  vector<string> message = split(buff);
+  handle_join_response(p_chat, message);  
+
   p_chat->leader_last_alive = getLocalTime();
   p_chat->leader_addr = l_addr;
   return 0;
@@ -172,17 +182,27 @@ void check_queue(dchat *p_chat, deque<string> my_que) {
 }
 
 void leader_receive_handler(dchat* p_chat, string msg) {
+  cout<<"leader receive handler:\t"<<msg<<endl;
+
   vector<string> message = split(msg);
+
+
   if (message[0] == "client_heartbeat") {
     p_chat->member_last_alive[message[1]] = getLocalTime();
   } 
+  else if(message[0] == "join_request") {
+    handle_join_request(p_chat, message);
+  }
   else {
     if (p_chat->current_member_stamp[message[2]] == stoi(message[1])) {
+      cout<<"correct time stamp"<<endl;
       p_chat->member_event_queue[message[2]].at(0) = msg;
       check_queue(p_chat, p_chat->member_event_queue[message[2]]);
     }
     else {
+
       if (p_chat->current_member_stamp[message[2]] < stoi(message[1])) {
+        cout<<"incorrect time stamp=> push"<<endl;
         int i = stoi(message[1]) - p_chat->current_member_stamp[message[2]];
         p_chat->member_event_queue[message[2]].at(i) = msg;
         string req = "leader_request#$" + p_chat->my_addr + "#$" + p_chat->my_name + "#$" + to_string(p_chat->current_member_stamp[message[2]]);
@@ -198,12 +218,16 @@ void client_receive_handler(dchat* p_chat, string msg) {
     p_chat->leader_last_alive = getLocalTime();
   }
   else {
+    cout<<"Client's recorded leader_stamp:\t"<<p_chat->leader_stamp;
     if (p_chat->leader_stamp == stoi(message[1])) {
+      cout<<" match the stamp"<<endl;
       p_chat->leader_event_queue.at(0) = msg;
       check_queue(p_chat, p_chat->leader_event_queue);
+      cout<<"here"<<endl;
     }
     else {
       if (p_chat->leader_stamp < stoi(message[1])) {
+        cout<<"doesn't match the stamp"<<endl;
         int i = stoi(message[1]) - p_chat->leader_stamp;
         p_chat->leader_event_queue.at(i) = msg;
         string req = "client_request#$" + p_chat->my_addr + "#$" + p_chat->my_name + "#$" + to_string(p_chat->leader_stamp);
@@ -217,12 +241,14 @@ void *recv_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
 
   for (;;) {
+  cout<<"HERE recv thread"<<endl;
     char buff[2048];
     bzero(buff, 2048);
     p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
     if (p_chat-> num < 0) {
       error("Error with recvfrom!\n");
     }
+    cout<<"Recvfrom get:\t"<<buff<<endl;
     if (p_chat->is_leader) {
       leader_receive_handler(p_chat, (string) buff);
     } else {
@@ -236,24 +262,30 @@ void *send_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
 
   for(;;) {
+  cout<<"HERE send thread"<<endl;
+
     if (p_chat->is_leader == true) {
 
       string line;
       getline(cin, line);
       line = p_chat->my_name + ":\t" + line;
-      broadcast( p_chat, line); 
+      string msg = "normal#$" + to_string(p_chat->current_stamp) + "#$" + line;
+      cout<<"You input:\t"<<msg<<endl;
 
+      broadcast( p_chat, msg); 
     } else {// non-leader member
 
       string line;
       getline(cin, line);
       line = p_chat->my_name + ":\t" + line;
+      cout<<"You input:\t"<<line<<endl;
 
       string msg = "normal#$" + to_string(p_chat->current_stamp) + "#$" + line;
       p_chat->current_stamp++;
       send_handler(msg, p_chat->leader_addr, p_chat);
     }
   }
+
   pthread_exit(NULL);
 }
 
@@ -331,12 +363,12 @@ int main(int argc, char *argv[]) {
   pthread_create(&threads[0], NULL, recv_msgs, (void *)p_dchat);
   pthread_create(&threads[1], NULL, send_msgs, (void *)p_dchat);
 
-  pthread_create(&threads[2], NULL, send_heart_beat, (void *)p_dchat);
-  pthread_create(&threads[3], NULL, check_alive, (void *)p_dchat);
+  //pthread_create(&threads[2], NULL, send_heart_beat, (void *)p_dchat);
+  //pthread_create(&threads[3], NULL, check_alive, (void *)p_dchat);
   
   pthread_join(threads[0], NULL);
   pthread_join(threads[1], NULL);
-  pthread_join(threads[2], NULL);
-  pthread_join(threads[3], NULL);
+  //pthread_join(threads[2], NULL);
+  //pthread_join(threads[3], NULL);
 	return 0;
 }

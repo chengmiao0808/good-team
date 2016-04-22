@@ -67,6 +67,7 @@ public:
 		member_last_alive = map<string, int>();
 		msgs = map<int, string>();
 		member_event_queue = map<string, deque<string>>();
+		leader_event_queue = deque<string>(10);
 	}
 	string get_ip_address();
 	void start_new_group(string l_name);
