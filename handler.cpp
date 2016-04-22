@@ -75,9 +75,9 @@ void handle_join_request(dchat* p_chat,  vector<string> message){
   string new_user_addr = message[3];
   deque<string> new_deque(10);
   p_chat->all_members_list[new_user_addr] = new_user_name;    //add new_user into the list 
-  p_chat->member_event_queue[new_user_name] = new_deque;      //new_user's msg queue
+  p_chat->member_event_queue[new_user_addr] = new_deque;      //new_user's msg queue
   p_chat->current_member_stamp[new_user_addr] = 0;            //new_user's msg count
-  p_chat->member_last_alive[new_user_name] = getLocalTime();  //new_user's last alive time
+  p_chat->member_last_alive[new_user_addr] = getLocalTime();  //new_user's last alive time
   cout<<"New member's name:\t"<<p_chat->all_members_list[new_user_addr]<<endl;
 
   // 2. send member list to the new member
