@@ -384,12 +384,12 @@ int main(int argc, char *argv[]) {
   pthread_create(&threads[0], NULL, recv_msgs, (void *)p_dchat);
   pthread_create(&threads[1], NULL, send_msgs, (void *)p_dchat);
 
-  //pthread_create(&threads[2], NULL, send_heart_beat, (void *)p_dchat);
-  //pthread_create(&threads[3], NULL, check_alive, (void *)p_dchat);
+  pthread_create(&threads[2], NULL, send_heart_beat, (void *)p_dchat);
+  pthread_create(&threads[3], NULL, check_alive, (void *)p_dchat);
   
   pthread_join(threads[0], NULL);
   pthread_join(threads[1], NULL);
-  //pthread_join(threads[2], NULL);
-  //pthread_join(threads[3], NULL);
+  pthread_join(threads[2], NULL);
+  pthread_join(threads[3], NULL);
 	return 0;
 }
