@@ -67,13 +67,13 @@ void handle_normal_message(dchat* p_chat, vector<string> message){
 
 
 /*  client_join_request: when client sends a join request to leader/other client. 
-    command#$time_stamp#$user_name#$my_ip:my_port (command is join_request)
+    command#$user_name#$my_ip:my_port (command is join_request)
 */
 void handle_join_request(dchat* p_chat,  vector<string> message){
 
   // 1. add new member into the map
-  string new_user_name = message[2];
-  string new_user_addr = message[3];
+  string new_user_name = message[1];
+  string new_user_addr = message[2];
   deque<string> new_deque(10);
   p_chat->all_members_list[new_user_addr] = new_user_name;    //add new_user into the list 
   p_chat->member_event_queue[new_user_addr] = new_deque;      //new_user's msg queue
@@ -86,7 +86,7 @@ void handle_join_request(dchat* p_chat,  vector<string> message){
   string memeber_list = "";
   for (auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
     memeber_list += "#$"  + iter->first;
-    memeber_list+= "#$"  + iter->second;
+    memeber_list += "#$"  + iter->second;
   } 
 
   string inform = "join_inform#$" 
@@ -100,10 +100,10 @@ void handle_join_request(dchat* p_chat,  vector<string> message){
 }
 
 /*
-    command#$time_stamp#$user_name#$my_ip:my_port (command is join_request)
+    command#$user_name#$my_ip:my_port (command is join_request)
 */
 void handle_forward_join_request(dchat *p_chat, vector<string> message){
-  string forward_msg = message[0] + message[1] + message[2] + message[3];
+  string forward_msg = message[0] + "#$" + message[1] + "#$" + message[2];
   string other_addr = p_chat->leader_addr;
   send_handler(forward_msg, other_addr, p_chat); 
 }
