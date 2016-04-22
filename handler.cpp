@@ -95,6 +95,8 @@ void handle_join_request(dchat* p_chat,  vector<string> message) {
         + to_string(p_chat->current_stamp)+ "#$" 
         + p_chat->leader_addr + "#$" + new_user_addr + member_list;
 
+    p_chat->msgs[p_chat->current_stamp] = inform;
+
     // 3. broadcast the "NOTICE xxxx joined on xxxxx""
     broadcast(p_chat, inform);
     p_chat->current_stamp++;

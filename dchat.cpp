@@ -279,6 +279,7 @@ void *send_msgs(void *threadarg) {
                   + p_chat->my_name + "#$" 
                   + line;
 
+      p_chat->msgs[p_chat->current_stamp] = msg;
       p_chat->current_stamp++;
       p_chat->leader_stamp = p_chat->current_stamp;
 
@@ -296,7 +297,8 @@ void *send_msgs(void *threadarg) {
                   + p_chat->my_addr+ "#$" 
                   + p_chat->my_name + "#$" 
                   + line;
-                  
+      
+      p_chat->msgs[p_chat->current_stamp] = msg;
       p_chat->current_stamp++;
       send_handler(msg, p_chat->leader_addr, p_chat);
     }
@@ -337,6 +339,7 @@ void *check_alive(void* threadarg) {
           string msg = "NOTICE " + name + " left the chat or crashed";
           cout<<msg<<endl;
           msg = "client_leave#$" + to_string(p_chat->current_stamp) + "#$" + msg;
+          p_chat->msgs[p_chat->current_stamp] = msg;
           p_chat->current_stamp++;
           p_chat->leader_stamp = p_chat->current_stamp;
           broadcast(p_chat, msg);
