@@ -65,6 +65,28 @@ int bind_socket(dchat *p_chat, string my_addr) {
   return 0;
 }
 
+void dchat::start_new_group(string l_name) {
+  cout<<"dchat::start_new_group is called!\n";
+  is_leader = true;
+  my_name = l_name;
+
+  while (1) {
+    srand((unsigned)time(NULL));
+    int portno = rand() % 2000 + 8000;
+    string l_addr = get_ip_address()+":"+to_string(portno);
+    int n = bind_socket(this, l_addr);
+    if (n == 0) {
+      leader_addr = l_addr;
+      my_addr = l_addr;
+      all_members_list[l_addr] = l_name;
+      cout<<l_name<<" started a new chat, listening on "<<l_addr<<"\n"
+        <<"Succeeded, current users:\n"<<l_name<<" "<<l_addr<<" (Leader)\n"
+        <<"Waiting for others to join...\n";
+      break;
+    }
+  }
+}
+
 int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m_name) {
   p_chat->has_joined = false;
   vector<string> vec_me = split_helper(m_addr, ":");
@@ -88,30 +110,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
   handle_join_inform(p_chat, message);  
 
   p_chat->leader_last_alive = getLocalTime();
-  p_chat->leader_addr = l_addr;
   return 0;
-}
-
-void dchat::start_new_group(string l_name) {
-  cout<<"dchat::start_new_group is called!\n";
-	is_leader = true;
-  my_name = l_name;
-
-  while (1) {
-    srand((unsigned)time(NULL));
-    int portno = rand() % 2000 + 8000;
-    string l_addr = get_ip_address()+":"+to_string(portno);
-    int n = bind_socket(this, l_addr);
-    if (n == 0) {
-      leader_addr = l_addr;
-      my_addr = l_addr;
-      all_members_list[l_addr] = l_name;
-      cout<<l_name<<" started a new chat, listening on "<<l_addr<<"\n"
-        <<"Succeeded, current users:\n"<<l_name<<" "<<l_addr<<" (Leader)\n"
-        <<"Waiting for others to join...\n";
-      break;
-    }
-  }
 }
 
 void dchat::join_a_group(string m_name, string l_addr) {

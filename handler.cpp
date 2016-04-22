@@ -48,7 +48,7 @@ void handle_normal_message(dchat* p_chat, vector<string> message){
   string user_name =vec[3];
   string msg = vec[4];
 
-  // update count of the memeber
+  // update count of the member
   if (p_chat->is_leader) {
     p_chat->current_member_stamp[user_addr]++;
 
@@ -58,6 +58,7 @@ void handle_normal_message(dchat* p_chat, vector<string> message){
     p_chat->current_stamp++;
     p_chat->leader_stamp = p_chat->current_stamp;
     broadcast(p_chat, line);
+    cout<<msg<<endl;
   } else {
     p_chat->leader_stamp++;
     cout << msg << endl;
@@ -84,15 +85,15 @@ void handle_join_request(dchat* p_chat,  vector<string> message){
 
     // 2. send member list to the new member
     /* Create the member list  <addr#$name> */ 
-    string memeber_list = "";
+    string member_list = "";
     for (auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
-      memeber_list += "#$"  + iter->first;
-      memeber_list += "#$"  + iter->second;
+      member_list += "#$"  + iter->first;
+      member_list += "#$"  + iter->second;
     } 
 
     string inform = "join_inform#$" 
         + to_string(p_chat->leader_stamp)+ "#$" 
-        + p_chat->leader_addr + "#$" + new_user_addr + memeber_list;
+        + p_chat->leader_addr + "#$" + new_user_addr + member_list;
 
     // 3. broadcast the "Notice xxxx joined on xxxxx""
     broadcast(p_chat, inform);
