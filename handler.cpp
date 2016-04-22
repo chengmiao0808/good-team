@@ -44,8 +44,8 @@ void handle_normal_message(dchat* p_chat, vector<string> message){
   vector<string> vec = message;
   string cmd = vec[0];
   int msg_time = stoi(vec[1]); 
-  string user_name =vec[2];
-  string user_addr =vec[3];
+  string user_addr =vec[2];
+  string user_name =vec[3];
   string msg = vec[4];
 
   // update count of the memeber
