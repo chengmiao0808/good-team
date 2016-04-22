@@ -223,7 +223,7 @@ void client_receive_handler(dchat* p_chat, string msg) {
       cout<<" match the stamp"<<endl;
       p_chat->leader_event_queue.at(0) = msg;
       check_queue(p_chat, p_chat->leader_event_queue);
-      cout<<"here"<<endl;
+      //cout<<"here"<<endl;
     }
     else {
       if (p_chat->leader_stamp < stoi(message[1])) {
@@ -241,7 +241,7 @@ void *recv_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
 
   for (;;) {
-  cout<<"HERE recv thread"<<endl;
+  //cout<<"HERE recv thread"<<endl;
     char buff[2048];
     bzero(buff, 2048);
     p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
@@ -258,18 +258,28 @@ void *recv_msgs(void *threadarg) {
   pthread_exit(NULL);
 }
 
+
+/*  normal_message: when client sends a normal message. 
+    command#$time_stamp#$user_ip:user_port#$user_name#$message (command is normal)
+*/
+
 void *send_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
 
   for(;;) {
-  cout<<"HERE send thread"<<endl;
+  //cout<<"HERE send thread"<<endl;
 
     if (p_chat->is_leader == true) {
 
       string line;
       getline(cin, line);
       line = p_chat->my_name + ":\t" + line;
-      string msg = "normal#$" + to_string(p_chat->current_stamp) + "#$" + line;
+      string msg = "normal#$" 
+                  + to_string(p_chat->current_stamp)+ "#$" 
+                  + p_chat->my_addr+ "#$" 
+                  + p_chat->my_name + "#$" 
+                  + line;
+
       cout<<"You input:\t"<<msg<<endl;
 
       broadcast( p_chat, msg); 
@@ -280,7 +290,12 @@ void *send_msgs(void *threadarg) {
       line = p_chat->my_name + ":\t" + line;
       cout<<"You input:\t"<<line<<endl;
 
-      string msg = "normal#$" + to_string(p_chat->current_stamp) + "#$" + line;
+      string msg = "normal#$" 
+                  + to_string(p_chat->current_stamp)+ "#$" 
+                  + p_chat->my_addr+ "#$" 
+                  + p_chat->my_name + "#$" 
+                  + line;
+                  
       p_chat->current_stamp++;
       send_handler(msg, p_chat->leader_addr, p_chat);
     }
