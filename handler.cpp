@@ -243,10 +243,18 @@ void handle_refuse(dchat *p_chat, vector<string> message) {
 }
 
 void handle_client_request(dchat *p_chat, vector<string> message) {
-
+  string client_addr = message[1];
+  string client_name = message[2];
+  int time_stamp = stoi(message[3]);
+  string msg = p_chat->msgs[time_stamp];
+  send_handler(msg, client_addr, p_chat);
 }
 
 void handle_leader_request(dchat *p_chat, vector<string> message) {
-
+  string leader_addr = message[1];
+  string leader_name = message[2];
+  int time_stamp = stoi(message[3]);
+  string msg = p_chat->msgs[time_stamp];
+  send_handler(msg, leader_addr, p_chat);
 }
 
