@@ -93,7 +93,7 @@ void handle_join_request(dchat* p_chat,  vector<string> message){
         + p_chat->leader_addr + "#$" + new_user_name + "#$" + memeber_list;
 
   // 3. broadcast the "Notice xxxx joined on xxxxx""
-  broadcast(p_chat, line);
+  broadcast(p_chat, inform);
   cout<< "leader_stamp: \t"<<p_chat->leader_stamp<<endl;
 
 }
@@ -123,7 +123,7 @@ void handle_join_inform(dchat *p_chat, vector<string> message){
     string val = message[index+1];
     p_chat->all_members_list[key] = val;
   }
-  if (p_chat->my_addr == join_user_address) {
+  if (p_chat->my_addr == new_user_address) {
     p_chat->has_joined = true;
   }
     
