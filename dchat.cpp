@@ -156,9 +156,6 @@ void check_queue(dchat *p_chat, deque<string> my_que) {
     }
     else if (message[0] == "join_inform") {
       handle_join_inform(p_chat, message);
-    } 
-    else if (message[0] == "join_response") {
-      handle_join_response(p_chat, message);
     }
     else if (message[0] == "client_leave") {
       handle_client_leave(p_chat, message);
