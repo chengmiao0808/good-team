@@ -74,7 +74,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
   int n = bind_socket(p_chat, m_addr);
   if (n < 0)
     return n;
-  p_chat->current_stamp = getLocalTime();
+  p_chat->current_stamp = 0;
   string msg = "join_request#$"+ to_string(p_chat->current_stamp)+ "#$" + m_name + "#$" + m_addr;
   send_handler(msg, l_addr, p_chat);
   
