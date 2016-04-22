@@ -29,7 +29,7 @@ void send_handler(string msg, string other_addr, dchat *p_chat) {
 }
 
 void broadcast(dchat *p_chat, string msg) {
-  cout<<"will broadcast to:"<< msg;
+  cout<<"will broadcast: \t<"<< msg<<"> to:"<<endl;
   for (auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
   //cout<<"\t this iter: \t"<< iter->first << endl;
     if (iter->first == p_chat->leader_addr) continue; //dont send to leader herself
@@ -92,6 +92,7 @@ void handle_join_request(dchat* p_chat,  vector<string> message){
 
   // 3. broadcast the "Notice xxxx joined on xxxxx""
   p_chat->leader_stamp++;
+  p_chat->current_stamp++;
   string line = "NOTICE " + new_user_name + " joined on " + new_user_addr;
   line = "join_inform#$" 
         + to_string(p_chat->leader_stamp)+ "#$" 
