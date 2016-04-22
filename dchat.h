@@ -53,6 +53,8 @@ public:
 	int leader_last_alive;
 	deque<string> leader_event_queue;
 	
+	// for election
+	bool is_election;
 
 	int sock, sock2, num, len;
     struct sockaddr_in me;
