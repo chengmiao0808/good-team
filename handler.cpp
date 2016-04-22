@@ -49,13 +49,19 @@ void handle_normal_message(dchat* p_chat, vector<string> message){
   string msg = vec[4];
 
   // update count of the memeber
-  p_chat->current_member_stamp[user_addr]++;
+  if (p_chat->is_leader && user_addr.compare(p_chat->my_addr) != 0) {
+    p_chat->current_member_stamp[user_addr]++;
 
-  // broadcast messages
-	string line = vec[0] + "#$" + to_string(p_chat->leader_stamp)+ "#$" + vec[2]+ "#$" + vec[3] + "#$" + vec[4];
-  p_chat->msgs[p_chat->leader_stamp] = line;
-  p_chat->leader_stamp++;
-	broadcast(p_chat, line);
+    // broadcast messages
+    string line = vec[0] + "#$" + to_string(p_chat->leader_stamp)+ "#$" + vec[2]+ "#$" + vec[3] + "#$" + vec[4];
+    p_chat->msgs[p_chat->current_stamp] = line;
+    p_chat->current_stamp++;
+    broadcast(p_chat, line);
+  } else {
+    p_chat->leader_stamp++;
+    cout << msg << endl;
+  }
+ 
 }
 
 
