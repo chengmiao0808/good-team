@@ -29,12 +29,12 @@ string dchat::get_ip_address() {
       if (n != 0) {
         error("Error with getnameinfo!\n");
       }
-      cout<<p_ifa->ifa_name<<endl;
-      cout<<"host is: "<<host<<endl;
+      // cout<<p_ifa->ifa_name<<endl;
+      // cout<<"host is: "<<host<<endl;
       if (strcmp(p_ifa->ifa_name, "en0") == 0) {
         string my_ip = string(host);
         freeifaddrs(p_ifaddrs);
-        cout<<"my_ip is: "<<my_ip<<endl;
+        // cout<<"my_ip is: "<<my_ip<<endl;
         return my_ip;
       }
     }
@@ -66,7 +66,6 @@ int bind_socket(dchat *p_chat, string my_addr) {
 }
 
 void dchat::start_new_group(string l_name) {
-  cout<<"dchat::start_new_group is called!\n";
   is_leader = true;
   my_name = l_name;
 
@@ -99,6 +98,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
   p_chat->current_stamp = 0;
   string msg = "join_request#$"+ m_name + "#$" + m_addr;
   send_handler(msg, l_addr, p_chat);
+  p_chat->leader_last_alive = getLocalTime();
   
   char buff[2048];
   bzero(buff, 2048);
@@ -152,7 +152,7 @@ void dchat::join_a_group(string m_name, string l_addr) {
 
 void check_queue(dchat *p_chat, deque<string> my_que) {
   int i;
-  for (i = 0; my_que.at(i).empty()!=1; i++) {
+  for (i = 0; my_que.at(i).empty()!=1; ) {
     vector<string> message = split(my_que.at(i));
     if (message[0] == "normal") {
       handle_normal_message(p_chat, message);
@@ -166,44 +166,39 @@ void check_queue(dchat *p_chat, deque<string> my_que) {
     else if (message[0] == "election") {
       handle_election(p_chat, message);
     }
-    else if (message[0] == "new_leader") {
+    else {
       handle_new_leader(p_chat, message);
     }
-    else if (message[0] == "refuse") {
-      handle_refuse(p_chat, message);
-    }
-    else if (message[0] == "client_request") {
-      handle_client_request(p_chat, message);
-    }
-    else {
-      handle_leader_request(p_chat, message);
-    }
+    my_que.pop_front();
+    my_que.emplace_back();
   }
 }
 
 void leader_receive_handler(dchat* p_chat, string msg) {
-  cout<<"leader receive handler:\t"<<msg<<endl;
-
   vector<string> message = split(msg);
-
 
   if (message[0] == "client_heartbeat") {
     p_chat->member_last_alive[message[1]] = getLocalTime();
   } 
   else if(message[0] == "join_request") {
+    cout<<"Recvfrom get:\t"<<msg<<endl;
     handle_join_request(p_chat, message);
   }
+  else if (message[0] == "client_request") {
+    cout<<"Recvfrom get:\t"<<msg<<endl;
+    handle_client_request(p_chat, message);
+  }
   else {
+    cout<<"Recvfrom get:\t"<<msg<<endl;
     if (p_chat->current_member_stamp[message[2]] == stoi(message[1])) {
-      cout<<"correct time stamp"<<endl;
+      // cout<<"match the member stamp"<<endl;
       p_chat->member_event_queue[message[2]].at(0) = msg;
       check_queue(p_chat, p_chat->member_event_queue[message[2]]);
     }
     else {
-
       if (p_chat->current_member_stamp[message[2]] < stoi(message[1])) {
-        cout<<"incorrect time stamp=> push"<<endl;
         int i = stoi(message[1]) - p_chat->current_member_stamp[message[2]];
+        cout<<"doesn't match the member stamp, i = "<<i<<endl;
         p_chat->member_event_queue[message[2]].at(i) = msg;
         string req = "leader_request#$" + p_chat->my_addr + "#$" + p_chat->my_name + "#$" + to_string(p_chat->current_member_stamp[message[2]]);
         send_handler(req, message[2], p_chat);
@@ -214,25 +209,29 @@ void leader_receive_handler(dchat* p_chat, string msg) {
 
 void client_receive_handler(dchat* p_chat, string msg) {
   vector<string> message = split(msg);
+
   if (message[0] == "leader_heartbeat") {
     p_chat->leader_last_alive = getLocalTime();
-    cout<<"leader_last_alive"<<p_chat->leader_last_alive<<endl;
   }
   else if (message[0] == "join_request") {
+    cout<<"Recvfrom get:\t"<<msg<<endl;
     handle_join_request(p_chat, message);
   }
+  else if (message[0] == "leader_request") {
+    cout<<"Recvfrom get:\t"<<msg<<endl;
+    handle_leader_request(p_chat, message);
+  }
   else {
-    cout<<"Client's recorded leader_stamp:\t"<<p_chat->leader_stamp;
+    cout<<"Recvfrom get:\t"<<msg<<endl;
     if (p_chat->leader_stamp == stoi(message[1])) {
-      cout<<" match the stamp"<<endl;
+      // cout<<"match the leader stamp"<<endl;
       p_chat->leader_event_queue.at(0) = msg;
       check_queue(p_chat, p_chat->leader_event_queue);
-      //cout<<"here"<<endl;
     }
     else {
       if (p_chat->leader_stamp < stoi(message[1])) {
-        cout<<"doesn't match the stamp"<<endl;
         int i = stoi(message[1]) - p_chat->leader_stamp;
+        cout<<"doesn't match the leader stamp, i = "<<i<<endl;
         p_chat->leader_event_queue.at(i) = msg;
         string req = "client_request#$" + p_chat->my_addr + "#$" + p_chat->my_name + "#$" + to_string(p_chat->leader_stamp);
         send_handler(req, p_chat->leader_addr, p_chat);
@@ -245,14 +244,13 @@ void *recv_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
 
   for (;;) {
-  //cout<<"HERE recv thread"<<endl;
     char buff[2048];
     bzero(buff, 2048);
     p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
     if (p_chat-> num < 0) {
       error("Error with recvfrom!\n");
     }
-    cout<<"Recvfrom get:\t"<<buff<<endl;
+    
     if (p_chat->is_leader) {
       leader_receive_handler(p_chat, (string) buff);
     } else {
@@ -271,10 +269,7 @@ void *send_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
 
   for(;;) {
-  //cout<<"HERE send thread"<<endl;
-
-    if (p_chat->is_leader == true) {
-
+    if (p_chat->is_leader) {
       string line;
       getline(cin, line);
       line = p_chat->my_name + ":\t" + line;
@@ -286,15 +281,15 @@ void *send_msgs(void *threadarg) {
 
       p_chat->current_stamp++;
       p_chat->leader_stamp = p_chat->current_stamp;
-      cout<<"You input:\t"<<msg<<endl;
 
-      broadcast( p_chat, msg); 
-    } else {// non-leader member
+      broadcast(p_chat, msg);
+      cout<<line<<endl;
+
+    } else { // non-leader member
 
       string line;
       getline(cin, line);
       line = p_chat->my_name + ":\t" + line;
-      cout<<"You input:\t"<<line<<endl;
 
       string msg = "normal#$" 
                   + to_string(p_chat->current_stamp)+ "#$" 
@@ -303,11 +298,9 @@ void *send_msgs(void *threadarg) {
                   + line;
                   
       p_chat->current_stamp++;
-      cout << msg << endl;
       send_handler(msg, p_chat->leader_addr, p_chat);
     }
   }
-
   pthread_exit(NULL);
 }
 
@@ -334,7 +327,7 @@ void *send_heart_beat(void *threadarg) {
 void *check_alive(void* threadarg) {
   dchat *p_chat = (dchat *) threadarg;
   if (p_chat->is_leader) {
-    while (1) {
+    while (true) {
       for (auto iter = p_chat->member_last_alive.begin(); iter != p_chat->member_last_alive.end(); ) {
         if (getLocalTime() - (iter->second) > 3) {
           string name = p_chat->all_members_list[iter->first];
@@ -342,8 +335,10 @@ void *check_alive(void* threadarg) {
           p_chat->member_last_alive.erase(iter++);
 
           string msg = "NOTICE " + name + " left the chat or crashed";
+          cout<<msg<<endl;
           msg = "client_leave#$" + to_string(p_chat->current_stamp) + "#$" + msg;
           p_chat->current_stamp++;
+          p_chat->leader_stamp = p_chat->current_stamp;
           broadcast(p_chat, msg);
         } else {
           ++iter;
@@ -352,10 +347,8 @@ void *check_alive(void* threadarg) {
     }
   }
   else {
-    for(;;){
-//      cout<<"Check leader alive"<<getLocalTime()-p_chat->leader_last_alive<<endl;
+    while (true) {
       if (getLocalTime() - p_chat->leader_last_alive > 3) {
-        cout<<"here"<< p_chat->has_joined <<endl;
         if (p_chat->has_joined) {
           cout<<"NOTICE the current leader left the chat or crashed"<<endl;
           vector<string> vec(10); 
@@ -363,7 +356,7 @@ void *check_alive(void* threadarg) {
           handle_election(p_chat, vec);
         }
         else {
-          cout<<"has not joined"<<endl;
+          // cout<<"has not joined"<<endl;
           string msg = "join_request#$" + p_chat->my_name + "#$" + p_chat->my_addr;
           send_handler(msg, p_chat->leader_addr, p_chat);
           p_chat->leader_last_alive = getLocalTime();
@@ -371,7 +364,6 @@ void *check_alive(void* threadarg) {
       }
     }
   }
-  
   pthread_exit(NULL);
 }
 

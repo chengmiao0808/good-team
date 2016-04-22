@@ -29,27 +29,27 @@ void send_handler(string msg, string other_addr, dchat *p_chat) {
 }
 
 void broadcast(dchat *p_chat, string msg) {
-  cout<<"will broadcast: \t<"<< msg<<"> to:"<<endl;
+  //cout<<"will broadcast: \t<"<< msg<<"> to:"<<endl;
   for (auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
   //cout<<"\t this iter: \t"<< iter->first << endl;
     if (iter->first == p_chat->leader_addr) continue; //dont send to leader herself
-    cout<<iter->second<<" on "<<iter->first<<endl;
+    //cout<<iter->second<<" on "<<iter->first<<endl;
     send_handler(msg, iter->first, p_chat);
   }
 }
 
-void handle_normal_message(dchat* p_chat, vector<string> message){ 
+void handle_normal_message(dchat* p_chat, vector<string> message) { 
 
   //command#$time_stamp#$user_ip:user_port#$user_name#$message
   vector<string> vec = message;
   string cmd = vec[0];
-  int msg_time = stoi(vec[1]); 
+  // int msg_time = stoi(vec[1]); 
   string user_addr =vec[2];
   string user_name =vec[3];
   string msg = vec[4];
 
-  // update count of the member
   if (p_chat->is_leader) {
+    // update stamp of the member
     p_chat->current_member_stamp[user_addr]++;
 
     // broadcast messages
@@ -70,18 +70,18 @@ void handle_normal_message(dchat* p_chat, vector<string> message){
 /*  client_join_request: when client sends a join request to leader/other client. 
     command#$user_name#$my_ip:my_port (command is join_request)
 */
-void handle_join_request(dchat* p_chat,  vector<string> message){
+void handle_join_request(dchat* p_chat,  vector<string> message) {
 
   if (p_chat->is_leader) {
     // 1. add new member into the map
     string new_user_name = message[1];
     string new_user_addr = message[2];
-    deque<string> new_deque(10);
+    deque<string> new_deque(100);
     p_chat->all_members_list[new_user_addr] = new_user_name;    //add new_user into the list 
     p_chat->member_event_queue[new_user_addr] = new_deque;      //new_user's msg queue
     p_chat->current_member_stamp[new_user_addr] = 0;            //new_user's msg count
     p_chat->member_last_alive[new_user_addr] = getLocalTime();  //new_user's last alive time
-    cout<<"New member's name:\t"<<p_chat->all_members_list[new_user_addr]<<endl;
+    cout<<"NOTICE "<<new_user_name<<" joined on "<<new_user_addr<<endl;
 
     // 2. send member list to the new member
     /* Create the member list  <addr#$name> */ 
@@ -89,31 +89,31 @@ void handle_join_request(dchat* p_chat,  vector<string> message){
     for (auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
       member_list += "#$"  + iter->first;
       member_list += "#$"  + iter->second;
-    } 
+    }
 
     string inform = "join_inform#$" 
-        + to_string(p_chat->leader_stamp)+ "#$" 
+        + to_string(p_chat->current_stamp)+ "#$" 
         + p_chat->leader_addr + "#$" + new_user_addr + member_list;
 
-    // 3. broadcast the "Notice xxxx joined on xxxxx""
+    // 3. broadcast the "NOTICE xxxx joined on xxxxx""
     broadcast(p_chat, inform);
-    cout<< "leader_stamp: \t"<<p_chat->leader_stamp<<endl;
+    p_chat->current_stamp++;
+    p_chat->leader_stamp = p_chat->current_stamp;
   }
   else {
     string forward_msg = message[0] + "#$" + message[1] + "#$" + message[2];
-    string other_addr = p_chat->leader_addr;
-    send_handler(forward_msg, other_addr, p_chat); 
+    send_handler(forward_msg, p_chat->leader_addr, p_chat); 
   }
 }
 
 /*
-	command#$time_stamp#$leader_ip:leader_port#$new_user_address#$all_member_addresses (command is join_inform)
+	command#$time_stamp#$leader_ip:leader_port#$new_user_addr#$all_member_addrs (command is join_inform)
 */
 void handle_join_inform(dchat *p_chat, vector<string> message){
   string cmd = message[0];
-  int leader_timestamp = stoi(message[1]) + 1;  // add 1 for leader_stamp  
+  int leader_timestamp = stoi(message[1]) + 1;  // add 1 for leader_stamp
   string leader_addr = message[2];
-  string new_user_address = message[3];
+  string new_user_addr = message[3];
 
   p_chat->leader_addr = leader_addr;
   p_chat->leader_stamp = leader_timestamp;
@@ -122,11 +122,11 @@ void handle_join_inform(dchat *p_chat, vector<string> message){
     string val = message[index+1];
     p_chat->all_members_list[key] = val;
   }
-  if (p_chat->my_addr == new_user_address) {
+  if (p_chat->my_addr == new_user_addr) {
     p_chat->has_joined = true;
   }
     
-  cout<<"NOTICE "<<p_chat->all_members_list[new_user_address]<<" joined on "<<new_user_address<<endl;
+  cout<<"NOTICE "<<p_chat->all_members_list[new_user_addr]<<" joined on "<<new_user_addr<<endl;
 
 }  
 
@@ -136,7 +136,7 @@ void handle_join_inform(dchat *p_chat, vector<string> message){
 */
 void handle_client_leave(dchat *p_chat, vector<string> message){
   string cmd = message[0];
-  int leader_timestamp = stoi(message[1]) + 1; 
+  int leader_timestamp = stoi(message[1]) + 1;  // add 1 for leader_stamp
   string left_user_addr = message[2];
   string msg = message[3];
 
@@ -149,10 +149,10 @@ void handle_client_leave(dchat *p_chat, vector<string> message){
 /**
  * Bully Comparison based on alphetic order of "IP:PORT"
  */
-bool bully_compare(string me, string candidate){
-  if(me.compare(candidate) > 0){ // reject
+bool bully_compare(string me, string candidate) {
+  if (me.compare(candidate) > 0) { // reject
     return true;
-  }else{ 						// agree
+  } else { 						// agree
     return false;
   }
 }
@@ -163,7 +163,7 @@ election: when client detect leader leaves or crashes,
 he would send a election message to all clients that have higher ip:port than himself. 
 command#$time_stamp#$client_ip:client:port (command is election)
 */
-void handle_election(dchat* p_chat, vector<string> message){
+void handle_election(dchat* p_chat, vector<string> message) {
   cout<<"election"<<message.size()<<endl;
 
   p_chat->all_members_list.erase(p_chat->leader_addr);
@@ -174,7 +174,7 @@ void handle_election(dchat* p_chat, vector<string> message){
     // command#$time_stamp#$client_ip:client:port (command is election)    
     vector<string> vec = message;
     string cmd = vec[0];
-    int msg_time = stoi(vec[1]); 
+    // int msg_time = stoi(vec[1]); 
     string informer_addr =vec[2];
     cout<<"here"<<endl;
 
@@ -246,32 +246,32 @@ void handle_election(dchat* p_chat, vector<string> message){
 void handle_new_leader(dchat* p_chat,vector<string> message){
   vector<string> vec = message;
   string cmd = vec[0];
-  int msg_time = stoi(vec[1]); 
+  // int msg_time = stoi(vec[1]); 
   string new_leader_addr =vec[2];
   string new_leader_name = vec[3];
   p_chat->leader_addr = new_leader_addr;
 
-  cout<<"Notice "<< " new leader "<<new_leader_name<<" is hearing on "<<new_leader_addr<<endl; 
+  cout<<"NOTICE new leader "<<new_leader_name<<" is listening on "<<new_leader_addr<<endl; 
 }
 
 void handle_refuse(dchat *p_chat, vector<string> message) {
 
 }
 
+// command#$client_ip:client_port#$client_name#$time_stamp_of_msg_asked. (command is client_request)
 void handle_client_request(dchat *p_chat, vector<string> message) {
   string client_addr = message[1];
-  string client_name = message[2];
+  // string client_name = message[2];
   int time_stamp = stoi(message[3]);
   string msg = p_chat->msgs[time_stamp];
   send_handler(msg, client_addr, p_chat);
 }
 
+// command#$leader_ip:leader_port#$leader_name#$time_stamp_of_msg_asked. (command is leader_request)
 void handle_leader_request(dchat *p_chat, vector<string> message) {
   string leader_addr = message[1];
-  string leader_name = message[2];
+  // string leader_name = message[2];
   int time_stamp = stoi(message[3]);
   string msg = p_chat->msgs[time_stamp];
   send_handler(msg, leader_addr, p_chat);
 }
-
-
