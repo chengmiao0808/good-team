@@ -53,9 +53,10 @@ void handle_normal_message(dchat* p_chat, vector<string> message){
     p_chat->current_member_stamp[user_addr]++;
 
     // broadcast messages
-    string line = vec[0] + "#$" + to_string(p_chat->leader_stamp)+ "#$" + vec[2]+ "#$" + vec[3] + "#$" + vec[4];
+    string line = vec[0] + "#$" + to_string(p_chat->current_stamp)+ "#$" + vec[2]+ "#$" + vec[3] + "#$" + vec[4];
     p_chat->msgs[p_chat->current_stamp] = line;
     p_chat->current_stamp++;
+    p_chat->leader_stamp = p_chat->current_stamp;
     broadcast(p_chat, line);
   } else {
     p_chat->leader_stamp++;
@@ -137,11 +138,11 @@ void handle_join_inform(dchat *p_chat, vector<string> message){
 */
 void handle_client_leave(dchat *p_chat, vector<string> message){
   string cmd = message[0];
-  int leader_timestamp = stoi(message[1]); 
+  int leader_timestamp = stoi(message[1]) + 1; 
   string left_user_addr = message[2];
   string msg = message[3];
 
-  p_chat->current_stamp = leader_timestamp;
+  p_chat->leader_stamp = leader_timestamp;
   p_chat->all_members_list.erase(left_user_addr);
   cout<<msg<<endl;
 }
