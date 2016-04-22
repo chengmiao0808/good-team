@@ -102,9 +102,20 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
   
   char buff[2048];
   bzero(buff, 2048);
+  struct timeval tv;
+  tv.tv_sec = 5;
+  tv.tv_usec = 0;
+  if (setsockopt(p_chat->sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
+    error("Recvfrom timeout!\n");
+  }
   p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
   if (p_chat-> num < 0) {
     error("Error with recvfrom!\n");
+  }
+
+  tv.tv_sec = 99999999;
+  if (setsockopt(p_chat->sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
+    error("Recvfrom timeout!\n");
   }
   vector<string> message = split(buff);
   handle_join_inform(p_chat, message);  
@@ -124,7 +135,6 @@ void dchat::join_a_group(string m_name, string l_addr) {
     my_addr = m_addr;
     int n = start_a_regular_member(this, l_addr, m_addr, m_name);
     if (n == 0) {
-      usleep(1000000);
       if (has_joined) {
         cout<<"Succeeded, current users:\n";
         typedef map<string, string>::iterator it_type;
