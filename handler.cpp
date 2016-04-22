@@ -40,7 +40,7 @@ void broadcast(dchat *p_chat, string msg) {
 
 void handle_normal_message(dchat* p_chat, vector<string> message){ 
 
-  //command#$time_stamp#$user_name#$user_ip:user_port#$message
+  //command#$time_stamp#$user_ip:user_port#$user_name#$message
   vector<string> vec = message;
   string cmd = vec[0];
   int msg_time = stoi(vec[1]); 
