@@ -169,14 +169,8 @@ void check_queue(dchat *p_chat, deque<string> my_que) {
     else if (message[0] == "new_leader") {
       handle_new_leader(p_chat, message);
     }
-    else if (message[0] == "refuse") {
-      handle_refuse(p_chat, message);
-    }
-    else if (message[0] == "client_request") {
-      handle_client_request(p_chat, message);
-    }
     else {
-      handle_leader_request(p_chat, message);
+      handle_refuse(p_chat, message);
     }
   }
 }
@@ -186,12 +180,14 @@ void leader_receive_handler(dchat* p_chat, string msg) {
 
   vector<string> message = split(msg);
 
-
   if (message[0] == "client_heartbeat") {
     p_chat->member_last_alive[message[1]] = getLocalTime();
   } 
   else if(message[0] == "join_request") {
     handle_join_request(p_chat, message);
+  }
+  else if (message[0] == "client_request") {
+    handle_client_request(p_chat, message);
   }
   else {
     if (p_chat->current_member_stamp[message[2]] == stoi(message[1])) {
@@ -200,7 +196,6 @@ void leader_receive_handler(dchat* p_chat, string msg) {
       check_queue(p_chat, p_chat->member_event_queue[message[2]]);
     }
     else {
-
       if (p_chat->current_member_stamp[message[2]] < stoi(message[1])) {
         cout<<"incorrect time stamp=> push"<<endl;
         int i = stoi(message[1]) - p_chat->current_member_stamp[message[2]];
@@ -214,11 +209,15 @@ void leader_receive_handler(dchat* p_chat, string msg) {
 
 void client_receive_handler(dchat* p_chat, string msg) {
   vector<string> message = split(msg);
+
   if (message[0] == "leader_heartbeat") {
     p_chat->leader_last_alive = getLocalTime();
   }
   else if (message[0] == "join_request") {
     handle_join_request(p_chat, message);
+  }
+  else if (message[0] == "leader_request") {
+    handle_leader_request(p_chat, message);
   }
   else {
     cout<<"Client's recorded leader_stamp:\t"<<p_chat->leader_stamp;
