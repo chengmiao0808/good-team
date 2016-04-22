@@ -166,8 +166,17 @@ void check_queue(dchat *p_chat, deque<string> my_que) {
     else if (message[0] == "election") {
       handle_election(p_chat, message);
     }
-    else {
+    else if (message[0] == "new_leader") {
       handle_new_leader(p_chat, message);
+    }
+    else if (message[0] == "refuse") {
+      handle_refuse(p_chat, message);
+    }
+    else if (message[0] == "client_request") {
+      handle_client_request(p_chat, message);
+    }
+    else {
+      handle_leader_request(p_chat, message);
     }
   }
 }
@@ -177,14 +186,12 @@ void leader_receive_handler(dchat* p_chat, string msg) {
 
   vector<string> message = split(msg);
 
+
   if (message[0] == "client_heartbeat") {
     p_chat->member_last_alive[message[1]] = getLocalTime();
   } 
   else if(message[0] == "join_request") {
     handle_join_request(p_chat, message);
-  }
-  else if (message[0] == "client_request") {
-    handle_client_request(p_chat, message);
   }
   else {
     if (p_chat->current_member_stamp[message[2]] == stoi(message[1])) {
@@ -193,6 +200,7 @@ void leader_receive_handler(dchat* p_chat, string msg) {
       check_queue(p_chat, p_chat->member_event_queue[message[2]]);
     }
     else {
+
       if (p_chat->current_member_stamp[message[2]] < stoi(message[1])) {
         cout<<"incorrect time stamp=> push"<<endl;
         int i = stoi(message[1]) - p_chat->current_member_stamp[message[2]];
@@ -206,15 +214,12 @@ void leader_receive_handler(dchat* p_chat, string msg) {
 
 void client_receive_handler(dchat* p_chat, string msg) {
   vector<string> message = split(msg);
-
   if (message[0] == "leader_heartbeat") {
     p_chat->leader_last_alive = getLocalTime();
+    cout<<"leader_last_alive"<<p_chat->leader_last_alive<<endl;
   }
   else if (message[0] == "join_request") {
     handle_join_request(p_chat, message);
-  }
-  else if (message[0] == "leader_request") {
-    handle_leader_request(p_chat, message);
   }
   else {
     cout<<"Client's recorded leader_stamp:\t"<<p_chat->leader_stamp;
@@ -347,15 +352,22 @@ void *check_alive(void* threadarg) {
     }
   }
   else {
-    if (getLocalTime() - p_chat->leader_last_alive > 3) {
-      if (p_chat->has_joined) {
-        cout<<"NOTICE the current leader left the chat or crashed";
-        handle_election(p_chat, vector<string>());
-      }
-      else {
-        string msg = "join_request#$" + p_chat->my_name + "#$" + p_chat->my_addr;
-        send_handler(msg, p_chat->leader_addr, p_chat);
-        p_chat->leader_last_alive = getLocalTime();
+    for(;;){
+//      cout<<"Check leader alive"<<getLocalTime()-p_chat->leader_last_alive<<endl;
+      if (getLocalTime() - p_chat->leader_last_alive > 3) {
+        cout<<"here"<< p_chat->has_joined <<endl;
+        if (p_chat->has_joined) {
+          cout<<"NOTICE the current leader left the chat or crashed"<<endl;
+          vector<string> vec(10); 
+          vec.clear();
+          handle_election(p_chat, vec);
+        }
+        else {
+          cout<<"has not joined"<<endl;
+          string msg = "join_request#$" + p_chat->my_name + "#$" + p_chat->my_addr;
+          send_handler(msg, p_chat->leader_addr, p_chat);
+          p_chat->leader_last_alive = getLocalTime();
+        }
       }
     }
   }

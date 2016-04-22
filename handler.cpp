@@ -164,35 +164,53 @@ he would send a election message to all clients that have higher ip:port than hi
 command#$time_stamp#$client_ip:client:port (command is election)
 */
 void handle_election(dchat* p_chat, vector<string> message){
+  cout<<"election"<<message.size()<<endl;
 
   p_chat->all_members_list.erase(p_chat->leader_addr);
+  p_chat->leader_addr = "";
 
-  // command#$time_stamp#$client_ip:client:port (command is election)
-  vector<string> vec = message;
-  string cmd = vec[0];
-  int msg_time = stoi(vec[1]); 
-  string informer_addr =vec[2];
+  if(!message.empty()){
+    cout<<"here"<<endl;
+    // command#$time_stamp#$client_ip:client:port (command is election)    
+    vector<string> vec = message;
+    string cmd = vec[0];
+    int msg_time = stoi(vec[1]); 
+    string informer_addr =vec[2];
+    cout<<"here"<<endl;
 
-  // I bully this informer, or I am the 1st one who start the election 
-  if(bully_compare(p_chat->my_addr, informer_addr) || message.empty() ){
+    // I bully this informer, or I am the 1st one who start the election 
+    if(bully_compare(p_chat->my_addr, informer_addr) ){
+      // 1. send back "okay": command#$time_stamp#$client_ip:client_port. (command is refuse)
+      string okay_msg = "refuse#$" + to_string(p_chat->current_stamp) + "#$" +p_chat->my_addr;
+      send_handler(okay_msg, informer_addr, p_chat);
 
-  	// 1. send back "okay": command#$time_stamp#$client_ip:client_port. (command is refuse)
-  	if(!message.empty()){
-  	  string okay_msg = "refuse#$" + to_string(p_chat->current_stamp) + "#$" +p_chat->my_addr;
-	  send_handler(okay_msg, informer_addr, p_chat);
-	}
+      // 2. send election to others with higher priority: 
+      //    command#$time_stamp#$client_ip:client:port (command is election)
+      string elect_msg = "election#$" + to_string(p_chat->current_stamp) + "#$" + p_chat->my_addr;
+      for (auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
+        if( !bully_compare(p_chat->my_addr, iter->first) ){
+          send_handler( elect_msg, iter->first, p_chat);
+        }
+      }
 
-  	// 2. send election to others with higher priority: 
-  	//  	command#$time_stamp#$client_ip:client:port (command is election)
-	string elect_msg = "election#$" + to_string(p_chat->current_stamp) + "#$" + p_chat->my_addr;
-  	for (auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
-  	  if( !bully_compare(p_chat->my_addr, iter->first) ){
-  	    send_handler( elect_msg, iter->first, p_chat);
-  	  }
-  	}
+    }else{ 
+      /* election loser, impossible to have this condition */
+    }
+
+  }else{ // start a new election
+
+      // 1. send election to others with higher priority: 
+      //    command#$time_stamp#$client_ip:client:port (command is election)
+      string elect_msg = "election#$" + to_string(p_chat->current_stamp) + "#$" + p_chat->my_addr;
+      for (auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
+        if( !bully_compare(p_chat->my_addr, iter->first) && p_chat->my_addr != iter->first){
+          cout<<"send to:\t"<<iter->first<<iter->second<<endl;
+          send_handler( elect_msg, iter->first, p_chat);
+        }
+      }    
+  }
 
   	// 3. wait for the result
-  	p_chat->is_leader = true;
   	int start_time = getLocalTime();
   	while( getLocalTime() - start_time < 5){
 	    char buff[2048];
@@ -210,6 +228,7 @@ void handle_election(dchat* p_chat, vector<string> message){
   	// new_leader_create: when a new leader is elected, 
   	// we would multicast the msg to every client. 
   	// command#$time_stamp#$leader_ip:leader_port#$leader_name. (command is new_leader) 
+    p_chat->is_leader = true;
   	if(p_chat->is_leader){
   	  p_chat->leader_addr = p_chat->my_addr;
   	  p_chat->leader_stamp = p_chat->current_stamp;
@@ -218,9 +237,6 @@ void handle_election(dchat* p_chat, vector<string> message){
   	  broadcast(p_chat, winner_line);	
   	}
 
-  }else{ // impossible to have this situation
-  	
-  }
 }
 
 /*	new_leader_create: when a new leader is elected, 
@@ -239,22 +255,14 @@ void handle_new_leader(dchat* p_chat,vector<string> message){
 }
 
 void handle_refuse(dchat *p_chat, vector<string> message) {
-  
+
 }
 
 void handle_client_request(dchat *p_chat, vector<string> message) {
-  string client_addr = message[1];
-  string client_name = message[2];
-  int time_stamp = stoi(message[3]);
-  string msg = p_chat->msgs[time_stamp];
-  send_handler(msg, client_addr, p_chat);
+
 }
 
 void handle_leader_request(dchat *p_chat, vector<string> message) {
-  string leader_addr = message[1];
-  string leader_name = message[2];
-  int time_stamp = stoi(message[3]);
-  string msg = p_chat->msgs[time_stamp];
-  send_handler(msg, leader_addr, p_chat);
+
 }
 
