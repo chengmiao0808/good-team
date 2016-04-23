@@ -103,7 +103,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
   char buff[2048];
   bzero(buff, 2048);
   struct timeval tv;
-  tv.tv_sec = 5;
+  tv.tv_sec = 45;
   tv.tv_usec = 0;
   if (setsockopt(p_chat->sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
     error("Recvfrom timeout!\n");
@@ -308,18 +308,15 @@ void *send_msgs(void *threadarg) {
 
 void *send_heart_beat(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
-  //cout << "HERE" << endl;
-  if (p_chat->is_leader) {
-    string msg = "leader_heartbeat#$" + p_chat->my_addr;
-    while (true) {
-      usleep(1000000);
+  
+  while (true) {
+    usleep(3000000);
+    if (p_chat->is_leader) {
+      string msg = "leader_heartbeat#$" + p_chat->my_addr;
       broadcast(p_chat, msg);
     }
-  }
-  else {
-    string msg = "client_heartbeat#$" + p_chat->my_addr;
-    while (true) {
-      usleep(1000000);
+    else {
+      string msg = "client_heartbeat#$" + p_chat->my_addr;
       send_handler(msg, p_chat->leader_addr, p_chat);
     }
   }
@@ -328,10 +325,11 @@ void *send_heart_beat(void *threadarg) {
 
 void *check_alive(void* threadarg) {
   dchat *p_chat = (dchat *) threadarg;
-  if (p_chat->is_leader) {
-    while (true) {
+
+  while (true) {
+    if (p_chat->is_leader) {
       for (auto iter = p_chat->member_last_alive.begin(); iter != p_chat->member_last_alive.end(); ) {
-        if (getLocalTime() - (iter->second) > 3) {
+        if (getLocalTime() - (iter->second) > 30) {
           string name = p_chat->all_members_list[iter->first];
           p_chat->all_members_list.erase(iter->first);
           p_chat->member_last_alive.erase(iter++);
@@ -348,10 +346,8 @@ void *check_alive(void* threadarg) {
         }
       }
     }
-  }
-  else {
-    while (true) {
-      if (getLocalTime() - p_chat->leader_last_alive > 3) {
+    else {
+      if (getLocalTime() - p_chat->leader_last_alive > 30) {
         if (p_chat->has_joined) {
           cout<<"NOTICE the current leader left the chat or crashed"<<endl;
           vector<string> vec(10); 
