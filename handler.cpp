@@ -77,7 +77,7 @@ void handle_join_request(dchat* p_chat,  vector<string> message) {
     // 1. add new member into the map
     string new_user_name = message[1];
     string new_user_addr = message[2];
-    deque<string> new_deque(100);
+    deque<string> new_deque(1500);
     p_chat->all_members_list[new_user_addr] = new_user_name;    //add new_user into the list 
     p_chat->member_event_queue[new_user_addr] = new_deque;      //new_user's msg queue
     p_chat->current_member_stamp[new_user_addr] = 0;            //new_user's msg count
@@ -175,7 +175,7 @@ void start_election(dchat* p_chat) {
   p_chat->leader_stamp = 0;
   p_chat->msgs.clear();
   p_chat->leader_event_queue.clear();
-  deque<string> new_deque(100);
+  deque<string> new_deque(1500);
   p_chat->leader_event_queue = new_deque;
 
   string elect_msg = "election#$" + p_chat->my_addr;
