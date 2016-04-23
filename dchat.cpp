@@ -327,6 +327,10 @@ void *send_msgs(void *threadarg) {
         p_chat->current_stamp++;
         send_handler(msg, p_chat->leader_addr, p_chat);
       }
+      if (p_chat->is_leader) {
+        broadcast(p_chat, msg);
+        cout<<line<<endl;
+      }
     }
   }
   pthread_exit(NULL);
@@ -360,13 +364,14 @@ void *check_alive(void* threadarg) {
         for (auto iter = p_chat->member_last_alive.begin(); iter != p_chat->member_last_alive.end(); ) {
           if (getLocalTime() - (iter->second) > 30) {
             string name = p_chat->all_members_list[iter->first];
+            string addr = iter->first;
             p_chat->all_members_list.erase(iter->first);
             p_chat->member_event_queue.erase(iter->first);
             p_chat->member_last_alive.erase(iter++);
 
             string msg = "NOTICE " + name + " left the chat or crashed";
             cout<<msg<<endl;
-            msg = "client_leave#$" + to_string(p_chat->current_stamp) + "#$" + msg;
+            msg = "client_leave#$" + to_string(p_chat->current_stamp) + "#$" + addr + "#$" + msg;
             p_chat->msgs[p_chat->current_stamp] = msg;
             p_chat->current_stamp++;
             p_chat->leader_stamp = p_chat->current_stamp;
@@ -379,7 +384,8 @@ void *check_alive(void* threadarg) {
       else {
         if (getLocalTime() - p_chat->leader_last_alive > 30) {
           if (p_chat->has_joined) {
-            cout<<"NOTICE the current leader left the chat or crashed"<<endl;
+            string name = p_chat->all_members_list[p_chat->leader_addr];
+            cout<<"NOTICE "<<name<<" (leader) left the chat or crashed"<<endl;
             start_election(p_chat);
           }
           else {
