@@ -106,19 +106,19 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
   tv.tv_sec = 45;
   tv.tv_usec = 0;
   if (setsockopt(p_chat->sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
-    error("Recvfrom timeout!\n");
+    error("Error with setsockopt!\n");
   }
   p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
-  if (p_chat-> num < 0) {
-    error("Error with recvfrom!\n");
+  if (p_chat->num < 0) {
+    error("Recvfrom timeout!\n");
   }
 
   tv.tv_sec = 99999999;
   if (setsockopt(p_chat->sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
-    error("Recvfrom timeout!\n");
+    error("Error with setsockopt!\n");
   }
   vector<string> message = split(buff);
-  handle_join_inform(p_chat, message);  
+  handle_join_inform(p_chat, message);
 
   p_chat->leader_last_alive = getLocalTime();
   return 0;
@@ -160,14 +160,8 @@ void check_queue(dchat *p_chat, deque<string> my_que) {
     else if (message[0] == "join_inform") {
       handle_join_inform(p_chat, message);
     }
-    else if (message[0] == "client_leave") {
-      handle_client_leave(p_chat, message);
-    }
-    else if (message[0] == "election") {
-      handle_election(p_chat, message);
-    }
     else {
-      handle_new_leader(p_chat, message);
+      handle_client_leave(p_chat, message);
     }
     my_que.pop_front();
     my_que.emplace_back();
@@ -221,6 +215,24 @@ void client_receive_handler(dchat* p_chat, string msg) {
     cout<<"Recvfrom get:\t"<<msg<<endl;
     handle_leader_request(p_chat, message);
   }
+  else if (message[0] == "election") {
+    cout<<"Recvfrom get:\t"<<msg<<endl;
+    string refuse = "refuse#$";
+    send_handler(refuse, message[1], p_chat);
+  }
+  else if (message[0] == "refuse") {
+    cout<<"Recvfrom get:\t"<<msg<<endl;
+    struct timeval tv;
+    tv.tv_sec = 99999999;;
+    tv.tv_usec = 0;
+    if (setsockopt(p_chat->sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
+      error("Error with setsockopt!\n");
+    }
+  }
+  else if (message[0] == "new_leader") {
+    cout<<"Recvfrom get:\t"<<msg<<endl;
+    handle_new_leader(p_chat, message);
+  }
   else {
     cout<<"Recvfrom get:\t"<<msg<<endl;
     if (p_chat->leader_stamp == stoi(message[1])) {
@@ -246,13 +258,27 @@ void *recv_msgs(void *threadarg) {
   for (;;) {
     char buff[2048];
     bzero(buff, 2048);
+    bool flag = true;
     p_chat->num = recvfrom(p_chat->sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
-    if (p_chat-> num < 0) {
-      error("Error with recvfrom!\n");
+    if (p_chat->num < 0) {
+      flag = false;
+      struct timeval tv;
+      tv.tv_sec = 99999999;
+      if (setsockopt(p_chat->sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
+        error("Error with setsockopt!\n");
+      }
+      p_chat->is_leader = true;
+      p_chat->is_election = false;
+      p_chat->leader_addr = p_chat->my_addr;
+      string new_leader_msg = "new_leader#$" + p_chat->my_addr + "#$" + p_chat->my_name;
+      broadcast(p_chat, new_leader_msg);
+      cout<<"NOTICE new leader "<<p_chat->my_name<<" is listening on "<<p_chat->my_addr<<endl;
     }
     
     if (p_chat->is_leader) {
-      leader_receive_handler(p_chat, (string) buff);
+      if (flag) {
+        leader_receive_handler(p_chat, (string) buff);
+      }
     } else {
       client_receive_handler(p_chat, (string) buff);
     }
@@ -264,7 +290,6 @@ void *recv_msgs(void *threadarg) {
 /*  normal_message: when client sends a normal message. 
     command#$time_stamp#$user_ip:user_port#$user_name#$message (command is normal)
 */
-
 void *send_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
 
@@ -287,7 +312,6 @@ void *send_msgs(void *threadarg) {
       cout<<line<<endl;
 
     } else { // non-leader member
-
       string line;
       getline(cin, line);
       line = p_chat->my_name + ":\t" + line;
@@ -298,9 +322,11 @@ void *send_msgs(void *threadarg) {
                   + p_chat->my_name + "#$" 
                   + line;
       
-      p_chat->msgs[p_chat->current_stamp] = msg;
-      p_chat->current_stamp++;
-      send_handler(msg, p_chat->leader_addr, p_chat);
+      if (!p_chat->is_election && !p_chat->is_leader) {
+        p_chat->msgs[p_chat->current_stamp] = msg;
+        p_chat->current_stamp++;
+        send_handler(msg, p_chat->leader_addr, p_chat);
+      }
     }
   }
   pthread_exit(NULL);
@@ -311,13 +337,15 @@ void *send_heart_beat(void *threadarg) {
   
   while (true) {
     usleep(3000000);
-    if (p_chat->is_leader) {
-      string msg = "leader_heartbeat#$" + p_chat->my_addr;
-      broadcast(p_chat, msg);
-    }
-    else {
-      string msg = "client_heartbeat#$" + p_chat->my_addr;
-      send_handler(msg, p_chat->leader_addr, p_chat);
+    if (!p_chat->is_election) {
+      if (p_chat->is_leader) {
+        string msg = "leader_heartbeat#$" + p_chat->my_addr;
+        broadcast(p_chat, msg);
+      }
+      else {
+        string msg = "client_heartbeat#$" + p_chat->my_addr;
+        send_handler(msg, p_chat->leader_addr, p_chat);
+      }
     }
   }
   pthread_exit(NULL);
@@ -327,38 +355,38 @@ void *check_alive(void* threadarg) {
   dchat *p_chat = (dchat *) threadarg;
 
   while (true) {
-    if (p_chat->is_leader) {
-      for (auto iter = p_chat->member_last_alive.begin(); iter != p_chat->member_last_alive.end(); ) {
-        if (getLocalTime() - (iter->second) > 30) {
-          string name = p_chat->all_members_list[iter->first];
-          p_chat->all_members_list.erase(iter->first);
-          p_chat->member_last_alive.erase(iter++);
+    if (!p_chat->is_election) {
+      if (p_chat->is_leader) {
+        for (auto iter = p_chat->member_last_alive.begin(); iter != p_chat->member_last_alive.end(); ) {
+          if (getLocalTime() - (iter->second) > 30) {
+            string name = p_chat->all_members_list[iter->first];
+            p_chat->all_members_list.erase(iter->first);
+            p_chat->member_event_queue.erase(iter->first);
+            p_chat->member_last_alive.erase(iter++);
 
-          string msg = "NOTICE " + name + " left the chat or crashed";
-          cout<<msg<<endl;
-          msg = "client_leave#$" + to_string(p_chat->current_stamp) + "#$" + msg;
-          p_chat->msgs[p_chat->current_stamp] = msg;
-          p_chat->current_stamp++;
-          p_chat->leader_stamp = p_chat->current_stamp;
-          broadcast(p_chat, msg);
-        } else {
-          ++iter;
+            string msg = "NOTICE " + name + " left the chat or crashed";
+            cout<<msg<<endl;
+            msg = "client_leave#$" + to_string(p_chat->current_stamp) + "#$" + msg;
+            p_chat->msgs[p_chat->current_stamp] = msg;
+            p_chat->current_stamp++;
+            p_chat->leader_stamp = p_chat->current_stamp;
+            broadcast(p_chat, msg);
+          } else {
+            ++iter;
+          }
         }
       }
-    }
-    else {
-      if (getLocalTime() - p_chat->leader_last_alive > 30) {
-        if (p_chat->has_joined) {
-          cout<<"NOTICE the current leader left the chat or crashed"<<endl;
-          vector<string> vec(10); 
-          vec.clear();
-          handle_election(p_chat, vec);
-        }
-        else {
-          // cout<<"has not joined"<<endl;
-          string msg = "join_request#$" + p_chat->my_name + "#$" + p_chat->my_addr;
-          send_handler(msg, p_chat->leader_addr, p_chat);
-          p_chat->leader_last_alive = getLocalTime();
+      else {
+        if (getLocalTime() - p_chat->leader_last_alive > 30) {
+          if (p_chat->has_joined) {
+            cout<<"NOTICE the current leader left the chat or crashed"<<endl;
+            start_election(p_chat);
+          }
+          else {
+            string msg = "join_request#$" + p_chat->my_name + "#$" + p_chat->my_addr;
+            send_handler(msg, p_chat->leader_addr, p_chat);
+            p_chat->leader_last_alive = getLocalTime();
+          }
         }
       }
     }

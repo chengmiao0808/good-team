@@ -17,11 +17,11 @@ void handle_join_inform(dchat *p_chat, vector<string> message);
 
 void handle_client_leave(dchat *p_chat, vector<string> message);
 
+void start_election(dchat *p_chat);
+
 void handle_election(dchat *p_chat, vector<string> message);
 
 void handle_new_leader(dchat *p_chat, vector<string> message);
-
-void handle_refuse(dchat *p_chat, vector<string> message);
 
 void handle_client_request(dchat *p_chat, vector<string> message);
 

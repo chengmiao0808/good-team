@@ -64,6 +64,7 @@ public:
 	dchat() {
 		current_stamp = 0;
 		leader_stamp = 0;
+		is_election = false;
 		all_members_list = map<string, string>();
 		current_member_stamp = map<string, int>();
 		member_last_alive = map<string, int>();
