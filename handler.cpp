@@ -174,6 +174,8 @@ void handle_election(dchat* p_chat, vector<string> message) {
   p_chat->all_members_list.erase(p_chat->leader_addr);
   p_chat->leader_addr = "";
 
+
+  // Some one inform me
   if(!message.empty()){
     cout<<"Others notice there is an new election"<<endl;
 
@@ -183,7 +185,7 @@ void handle_election(dchat* p_chat, vector<string> message) {
     int msg_time = stoi(vec[1]); 
     string informer_addr =vec[2];
 
-    // I bully this informer, or I am the 1st one who start the election 
+    // I bully this informer
     if(bully_compare(p_chat->my_addr, informer_addr) ){
 
       // 1. send back "okay": command#$time_stamp#$client_ip:client_port. (command is refuse)
