@@ -167,7 +167,7 @@ command#$time_stamp#$client_ip:client:port (command is election)
 */
 void handle_election(dchat* p_chat, vector<string> message) {
   cout<<"election"<<message.size()<<endl;
-  if(p_chat->is_election == true) return;
+
 
   p_chat->is_election = true;
   bool is_winner = true;
