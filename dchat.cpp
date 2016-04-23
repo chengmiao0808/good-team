@@ -328,6 +328,10 @@ void *send_msgs(void *threadarg) {
         send_handler(msg, p_chat->leader_addr, p_chat);
       }
       if (p_chat->is_leader) {
+        p_chat->msgs[p_chat->current_stamp] = msg;
+        p_chat->current_stamp++;
+        p_chat->leader_stamp = p_chat->current_stamp;
+        
         broadcast(p_chat, msg);
         cout<<line<<endl;
       }
