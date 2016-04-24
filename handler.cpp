@@ -191,7 +191,6 @@ void start_election(dchat* p_chat) {
   bzero(buff, 2048);
   struct timeval tv;
   tv.tv_sec = 45;
-  tv.tv_usec = 0;
   if (setsockopt(p_chat->sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
     error("Error with setsockopt!\n");
   }
