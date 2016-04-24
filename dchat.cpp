@@ -176,15 +176,15 @@ void leader_receive_handler(dchat* p_chat, string msg) {
     p_chat->member_last_alive[message[1]] = getLocalTime();
   } 
   else if(message[0] == "join_request") {
-    cout<<"Recvfrom get:\t"<<msg<<endl;
+    // cout<<"Recvfrom get:\t"<<msg<<endl;
     handle_join_request(p_chat, message);
   }
   else if (message[0] == "client_request") {
-    cout<<"Recvfrom get:\t"<<msg<<endl;
+    // cout<<"Recvfrom get:\t"<<msg<<endl;
     handle_client_request(p_chat, message);
   }
   else {
-    cout<<"Recvfrom get:\t"<<msg<<endl;
+    // cout<<"Recvfrom get:\t"<<msg<<endl;
     if (p_chat->current_member_stamp[message[2]] == stoi(message[1])) {
       // cout<<"match the member stamp"<<endl;
       p_chat->member_event_queue[message[2]].at(0) = msg;
@@ -209,20 +209,20 @@ void client_receive_handler(dchat* p_chat, string msg) {
     p_chat->leader_last_alive = getLocalTime();
   }
   else if (message[0] == "join_request") {
-    cout<<"Recvfrom get:\t"<<msg<<endl;
+    // cout<<"Recvfrom get:\t"<<msg<<endl;
     handle_join_request(p_chat, message);
   }
   else if (message[0] == "leader_request") {
-    cout<<"Recvfrom get:\t"<<msg<<endl;
+    // cout<<"Recvfrom get:\t"<<msg<<endl;
     handle_leader_request(p_chat, message);
   }
   else if (message[0] == "election") {
-    cout<<"Recvfrom get:\t"<<msg<<endl;
+    // cout<<"Recvfrom get:\t"<<msg<<endl;
     string refuse = "refuse#$";
     send_handler(refuse, message[1], p_chat);
   }
   else if (message[0] == "refuse") {
-    cout<<"Recvfrom get:\t"<<msg<<endl;
+    // cout<<"Recvfrom get:\t"<<msg<<endl;
     struct timeval tv;
     tv.tv_sec = 88888888;
     tv.tv_usec = 0;
@@ -231,11 +231,11 @@ void client_receive_handler(dchat* p_chat, string msg) {
     }
   }
   else if (message[0] == "new_leader") {
-    cout<<"Recvfrom get:\t"<<msg<<endl;
+    // cout<<"Recvfrom get:\t"<<msg<<endl;
     handle_new_leader(p_chat, message);
   }
   else {
-    cout<<"Recvfrom get:\t"<<msg<<endl;
+    // cout<<"Recvfrom get:\t"<<msg<<endl;
     if (p_chat->leader_stamp == stoi(message[1])) {
       // cout<<"match the leader stamp"<<endl;
       p_chat->leader_event_queue.at(0) = msg;
