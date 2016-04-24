@@ -104,6 +104,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
   bzero(buff, 2048);
   struct timeval tv;
   tv.tv_sec = 45;
+  tv.tv_usec = 0;
   if (setsockopt(p_chat->sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
     error("Error with setsockopt!\n");
   }
@@ -113,6 +114,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
   }
 
   tv.tv_sec = 88888888;
+  tv.tv_usec = 0;
   if (setsockopt(p_chat->sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
     error("Error with setsockopt!\n");
   }
@@ -223,6 +225,7 @@ void client_receive_handler(dchat* p_chat, string msg) {
     cout<<"Recvfrom get:\t"<<msg<<endl;
     struct timeval tv;
     tv.tv_sec = 88888888;
+    tv.tv_usec = 0;
     if (setsockopt(p_chat->sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
       error("Error with setsockopt!\n");
     }
@@ -262,6 +265,7 @@ void *recv_msgs(void *threadarg) {
       flag = false;
       struct timeval tv;
       tv.tv_sec = 88888888;
+      tv.tv_usec = 0;
       if (setsockopt(p_chat->sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
         error("Error with setsockopt!\n");
       }
