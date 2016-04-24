@@ -14,6 +14,8 @@ using namespace std;
 int getLocalTime();
 string encrypt(string);
 string decrypt(string);
+string substitute_encrypt(string);
+string substitute_decrypt(string);
 
 vector<string> split(string str);
 
