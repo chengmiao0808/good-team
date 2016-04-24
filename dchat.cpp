@@ -31,7 +31,7 @@ string dchat::get_ip_address() {
       }
       // cout<<p_ifa->ifa_name<<endl;
       // cout<<"host is: "<<host<<endl;
-      if (strcmp(p_ifa->ifa_name, "em1") == 0) {  //en0 for Mac
+      if (strcmp(p_ifa->ifa_name, "em1") == 0) {  //"en0" for Mac
         string my_ip = string(host);
         freeifaddrs(p_ifaddrs);
         // cout<<"my_ip is: "<<my_ip<<endl;
@@ -196,8 +196,10 @@ void leader_receive_handler(dchat* p_chat, string msg) {
         cout<<"doesn't match the member stamp, i = "<<i<<endl;
         p_chat->member_event_queue[message[2]].at(i) = msg;
         for (int k = 0; k < i; k++) {
-          string req = "leader_request#$" + p_chat->my_addr + "#$" + p_chat->my_name + "#$" + to_string(p_chat->current_member_stamp[message[2]] + k);
-          send_handler(req, message[2], p_chat);
+          if (p_chat->member_event_queue[message[2]].at(k).empty()) {
+            string req = "leader_request#$" + p_chat->my_addr + "#$" + p_chat->my_name + "#$" + to_string(p_chat->current_member_stamp[message[2]] + k);
+            send_handler(req, message[2], p_chat);
+          }
         }
       }
     }
@@ -249,8 +251,10 @@ void client_receive_handler(dchat* p_chat, string msg) {
         cout<<"doesn't match the leader stamp, i = "<<i<<endl;
         p_chat->leader_event_queue.at(i) = msg;
         for (int k = 0; k < i; k++) {
-          string req = "client_request#$" + p_chat->my_addr + "#$" + p_chat->my_name + "#$" + to_string(p_chat->leader_stamp + k);
-          send_handler(req, p_chat->leader_addr, p_chat);
+          if (p_chat->leader_event_queue.at(k).empty()) {
+            string req = "client_request#$" + p_chat->my_addr + "#$" + p_chat->my_name + "#$" + to_string(p_chat->leader_stamp + k);
+            send_handler(req, p_chat->leader_addr, p_chat);
+          }
         }
       }
     }
