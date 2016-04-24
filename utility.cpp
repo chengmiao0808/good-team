@@ -3,6 +3,7 @@
 #include <time.h>      /* time_t, struct tm, difftime, time, mktime */
 #include <stdio.h>
 #include <stdlib.h>
+#include <iostream>
 
 const string ALPHABET = "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ0123456789 ";
 
@@ -23,9 +24,11 @@ vector<string> split(string str) {
 }
 
 vector<string> split_helper(string str, string sep) {
+	char temp[2048];
+	strcpy(temp, str.c_str());
     vector<string> arr;
     char* curr;
-    char* cstr = const_cast<char*>(str.c_str());
+    char* cstr = const_cast<char*>(temp);
     curr = strtok(cstr, sep.c_str());
     while (curr != NULL) {
         arr.push_back(string(curr));
@@ -63,4 +66,3 @@ string decrypt(string input) {
 
 	return result;
 }
-

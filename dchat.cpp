@@ -31,7 +31,7 @@ string dchat::get_ip_address() {
       }
       // cout<<p_ifa->ifa_name<<endl;
       // cout<<"host is: "<<host<<endl;
-      if (strcmp(p_ifa->ifa_name, "en0") == 0) {
+      if (strcmp(p_ifa->ifa_name, "em1") == 0) {  //en0 for Mac
         string my_ip = string(host);
         freeifaddrs(p_ifaddrs);
         // cout<<"my_ip is: "<<my_ip<<endl;
