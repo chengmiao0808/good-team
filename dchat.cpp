@@ -196,7 +196,7 @@ void leader_receive_handler(dchat* p_chat, string msg) {
         cout<<"doesn't match the member stamp, i = "<<i<<endl;
         p_chat->member_event_queue[message[2]].at(i) = msg;
         for (int k = 0; k < i; k++) {
-          string req = "leader_request#$" + p_chat->my_addr + "#$" + p_chat->my_name + "#$" + to_string(p_chat->current_member_stamp[message[2]]+k);
+          string req = "leader_request#$" + p_chat->my_addr + "#$" + p_chat->my_name + "#$" + to_string(p_chat->current_member_stamp[message[2]] + k);
           send_handler(req, message[2], p_chat);
         }
       }
@@ -248,8 +248,10 @@ void client_receive_handler(dchat* p_chat, string msg) {
         int i = stoi(message[1]) - p_chat->leader_stamp;
         cout<<"doesn't match the leader stamp, i = "<<i<<endl;
         p_chat->leader_event_queue.at(i) = msg;
-        string req = "client_request#$" + p_chat->my_addr + "#$" + p_chat->my_name + "#$" + to_string(p_chat->leader_stamp);
-        send_handler(req, p_chat->leader_addr, p_chat);
+        for (int k = 0; k < i; k++) {
+          string req = "client_request#$" + p_chat->my_addr + "#$" + p_chat->my_name + "#$" + to_string(p_chat->leader_stamp + k);
+          send_handler(req, p_chat->leader_addr, p_chat);
+        }
       }
     }
   }
