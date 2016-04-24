@@ -31,7 +31,7 @@ string dchat::get_ip_address() {
       }
       // cout<<p_ifa->ifa_name<<endl;
       // cout<<"host is: "<<host<<endl;
-      if (strcmp(p_ifa->ifa_name, "em1") == 0) {  //"en0" for Mac
+      if (strcmp(p_ifa->ifa_name, "em1") == 0) {  //"en0" for Mac, "em1" for Linux
         string my_ip = string(host);
         freeifaddrs(p_ifaddrs);
         // cout<<"my_ip is: "<<my_ip<<endl;
@@ -306,7 +306,9 @@ void *send_msgs(void *threadarg) {
   for(;;) {
     if (p_chat->is_leader) {
       string line;
-      getline(cin, line);
+      if (!getline(cin, line)) {
+        error("You just exited the chat!\n");
+      }
       line = p_chat->my_name + ":\t" + line;
       string msg = "normal#$" 
                   + to_string(p_chat->current_stamp)+ "#$" 
@@ -323,7 +325,9 @@ void *send_msgs(void *threadarg) {
 
     } else { // non-leader member
       string line;
-      getline(cin, line);
+      if (!getline(cin, line)) {
+        error("You just exited the chat!\n");
+      }
       line = p_chat->my_name + ":\t" + line;
 
       string msg = "normal#$" 

@@ -13,11 +13,8 @@
 #include <string>
 #include <iostream>
 #include <map>
-#include <set>
 #include <vector>
 #include <deque>
-#include <sysexits.h>
-#include <signal.h>
 #include <iterator>
 #include <pthread.h>
 
