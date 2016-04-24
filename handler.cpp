@@ -182,7 +182,7 @@ void start_election(dchat* p_chat) {
   for (auto iter = p_chat->all_members_list.begin(); iter != p_chat->all_members_list.end(); iter++) {
     if (!bully_compare(p_chat->my_addr, iter->first)) {
       if (p_chat->my_addr != iter->first) {
-        cout<<iter->first<<endl;
+        // cout<<iter->first<<endl;
         send_handler(elect_msg, iter->first, p_chat);
       }
     }
