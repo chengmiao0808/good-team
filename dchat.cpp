@@ -193,7 +193,7 @@ void leader_receive_handler(dchat* p_chat, string msg) {
     else {
       if (p_chat->current_member_stamp[message[2]] < stoi(message[1])) {
         int i = stoi(message[1]) - p_chat->current_member_stamp[message[2]];
-        cout<<"doesn't match the member stamp, i = "<<i<<endl;
+        // cout<<"doesn't match the member stamp, i = "<<i<<endl;
         p_chat->member_event_queue[message[2]].at(i) = msg;
         for (int k = 0; k < i; k++) {
           if (p_chat->member_event_queue[message[2]].at(k).empty()) {
@@ -248,7 +248,7 @@ void client_receive_handler(dchat* p_chat, string msg) {
     else {
       if (p_chat->leader_stamp < stoi(message[1])) {
         int i = stoi(message[1]) - p_chat->leader_stamp;
-        cout<<"doesn't match the leader stamp, i = "<<i<<endl;
+        // cout<<"doesn't match the leader stamp, i = "<<i<<endl;
         p_chat->leader_event_queue.at(i) = msg;
         for (int k = 0; k < i; k++) {
           if (p_chat->leader_event_queue.at(k).empty()) {
@@ -304,6 +304,7 @@ void *send_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
 
   for(;;) {
+    usleep(1000);
     if (p_chat->is_leader) {
       string line;
       if (!getline(cin, line)) {
