@@ -195,8 +195,10 @@ void leader_receive_handler(dchat* p_chat, string msg) {
         int i = stoi(message[1]) - p_chat->current_member_stamp[message[2]];
         cout<<"doesn't match the member stamp, i = "<<i<<endl;
         p_chat->member_event_queue[message[2]].at(i) = msg;
-        string req = "leader_request#$" + p_chat->my_addr + "#$" + p_chat->my_name + "#$" + to_string(p_chat->current_member_stamp[message[2]]);
-        send_handler(req, message[2], p_chat);
+        for (int k = 0; k < i; k++) {
+          string req = "leader_request#$" + p_chat->my_addr + "#$" + p_chat->my_name + "#$" + to_string(p_chat->current_member_stamp[message[2]]+k);
+          send_handler(req, message[2], p_chat);
+        }
       }
     }
   }
