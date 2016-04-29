@@ -304,7 +304,7 @@ void *send_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
 
   for(;;) {
-    usleep(100);
+    usleep(1000);
     if (p_chat->is_leader) {
       string line;
       if (!getline(cin, line)) {
