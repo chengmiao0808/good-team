@@ -359,7 +359,7 @@ void *send_heart_beat(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
   
   while (true) {
-    usleep(3000000);
+    usleep(1000000);
     if (!p_chat->is_election) {
       if (p_chat->is_leader) {
         string msg = "leader_heartbeat#$" + p_chat->my_addr;
@@ -381,7 +381,7 @@ void *check_alive(void* threadarg) {
     if (!p_chat->is_election) {
       if (p_chat->is_leader) {
         for (auto iter = p_chat->member_last_alive.begin(); iter != p_chat->member_last_alive.end(); ) {
-          if (getLocalTime() - (iter->second) > 4) {
+          if (getLocalTime() - (iter->second) > 3) {
             string name = p_chat->all_members_list[iter->first];
             string addr = iter->first;
             p_chat->all_members_list.erase(iter->first);
@@ -401,7 +401,7 @@ void *check_alive(void* threadarg) {
         }
       }
       else {
-        if (getLocalTime() - p_chat->leader_last_alive > 4) {
+        if (getLocalTime() - p_chat->leader_last_alive > 3) {
           if (p_chat->has_joined) {
             string name = p_chat->all_members_list[p_chat->leader_addr];
             cout<<"NOTICE "<<name<<" (leader) left the chat or crashed"<<endl;
