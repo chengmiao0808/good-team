@@ -103,7 +103,7 @@ int start_a_regular_member(dchat *p_chat, string l_addr, string m_addr, string m
   char buff[2048];
   bzero(buff, 2048);
   struct timeval tv;
-  tv.tv_sec = 45;
+  tv.tv_sec = 4;
   tv.tv_usec = 0;
   if (setsockopt(p_chat->sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
     error("Error with setsockopt!\n");
@@ -304,7 +304,7 @@ void *send_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
 
   for(;;) {
-    usleep(1000);
+    usleep(100);
     if (p_chat->is_leader) {
       string line;
       if (!getline(cin, line)) {
@@ -359,7 +359,7 @@ void *send_heart_beat(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
   
   while (true) {
-    usleep(3000000);
+    usleep(1000000);
     if (!p_chat->is_election) {
       if (p_chat->is_leader) {
         string msg = "leader_heartbeat#$" + p_chat->my_addr;
@@ -381,7 +381,7 @@ void *check_alive(void* threadarg) {
     if (!p_chat->is_election) {
       if (p_chat->is_leader) {
         for (auto iter = p_chat->member_last_alive.begin(); iter != p_chat->member_last_alive.end(); ) {
-          if (getLocalTime() - (iter->second) > 30) {
+          if (getLocalTime() - (iter->second) > 3) {
             string name = p_chat->all_members_list[iter->first];
             string addr = iter->first;
             p_chat->all_members_list.erase(iter->first);
@@ -401,7 +401,7 @@ void *check_alive(void* threadarg) {
         }
       }
       else {
-        if (getLocalTime() - p_chat->leader_last_alive > 30) {
+        if (getLocalTime() - p_chat->leader_last_alive > 3) {
           if (p_chat->has_joined) {
             string name = p_chat->all_members_list[p_chat->leader_addr];
             cout<<"NOTICE "<<name<<" (leader) left the chat or crashed"<<endl;
