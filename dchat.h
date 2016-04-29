@@ -67,7 +67,7 @@ public:
 		member_last_alive = map<string, int>();
 		msgs = map<int, string>();
 		member_event_queue = map<string, deque<string>>();
-		deque<string> new_deque(9999999);
+		deque<string> new_deque(1000000);
 		leader_event_queue = new_deque;
 	}
 	string get_ip_address();
