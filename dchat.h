@@ -17,6 +17,7 @@
 #include <deque>
 #include <iterator>
 #include <pthread.h>
+#include <queue>
 
 #include "utility.h"
 
@@ -39,6 +40,7 @@ public:
 
 	int current_stamp; // for event total ordering
 	map<int, string> msgs; // Store previous messages
+	queue<string> input_msgs;	
 
 	// for the leader side
 	map<string, int> current_member_stamp;
@@ -53,9 +55,10 @@ public:
 	// for election
 	bool is_election;
 
-	int sock, sock2, num, len;
+	int sock, sock2, h_sock, h_sock2, num, len;
     struct sockaddr_in me;
     struct sockaddr_in other;
+    struct sockaddr_in heartbeat;
 
 
 	dchat() {
@@ -69,6 +72,10 @@ public:
 		member_event_queue = map<string, deque<string>>();
 		deque<string> new_deque(1000000);
 		leader_event_queue = new_deque;
+
+				
+		queue<string> input_que;
+		input_msgs = input_que;
 	}
 	string get_ip_address();
 	void start_new_group(string l_name);

@@ -5,6 +5,10 @@
 
 void error(string err);
 
+void send_heartbeat_handler(string msg, string other_addr, dchat *p_chat);
+
+void broadcast_heartbeat(dchat *p_chat, string msg);
+
 void send_handler(string msg, string other_addr, dchat *p_chat);
 
 void broadcast(dchat *p_chat, string msg);

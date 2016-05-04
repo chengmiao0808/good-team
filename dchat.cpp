@@ -31,7 +31,7 @@ string dchat::get_ip_address() {
       }
       // cout<<p_ifa->ifa_name<<endl;
       // cout<<"host is: "<<host<<endl;
-      if (strcmp(p_ifa->ifa_name, "em1") == 0) {  //"en0" for Mac, "em1" for Linux
+      if (strcmp(p_ifa->ifa_name, "en0") == 0) {  //"en0" for Mac, "em1" for Linux
         string my_ip = string(host);
         freeifaddrs(p_ifaddrs);
         // cout<<"my_ip is: "<<my_ip<<endl;
@@ -52,15 +52,31 @@ int bind_socket(dchat *p_chat, string my_addr) {
     return p_chat->sock;
   }
 
+  p_chat->h_sock = socket(AF_INET, SOCK_DGRAM, 0);
+  if (p_chat->h_sock < 0) {
+    return p_chat->h_sock;
+  }
+
   //initialize my information
   bzero((char *) &(p_chat->me), sizeof(p_chat->me)); 
   p_chat->me.sin_family = AF_INET;
   p_chat->me.sin_addr.s_addr = inet_addr(ip_addr.c_str());
   p_chat->me.sin_port = htons(stoi(portno));
 
+
+  bzero((char *) & (p_chat->heartbeat), sizeof(p_chat->heartbeat));
+  p_chat->heartbeat.sin_family = AF_INET;
+  p_chat->heartbeat.sin_addr.s_addr = inet_addr(ip_addr.c_str());
+  p_chat->heartbeat.sin_port = htons(stoi(portno) + 1);
+
   p_chat->sock2 = ::bind(p_chat->sock, (struct sockaddr *) &(p_chat->me), sizeof(p_chat->me));
   if (p_chat->sock2 < 0) {
     return p_chat->sock2;
+  }
+
+  p_chat->h_sock2 = ::bind(p_chat->h_sock, (struct sockaddr *) &(p_chat->heartbeat), sizeof(p_chat->heartbeat));
+  if (p_chat->h_sock2 < 0) {
+    return p_chat->h_sock2;
   }
   return 0;
 }
@@ -261,6 +277,26 @@ void client_receive_handler(dchat* p_chat, string msg) {
   }
 }
 
+void *recv_heartbeat(void *threadarg) {
+  dchat *p_chat = (dchat *) threadarg;
+
+  for (;;) {
+    char buff[2048];
+    bzero(buff, 2048);
+    bool flag = true;
+
+    p_chat->num = recvfrom(p_chat->h_sock, buff, 2048, 0, (struct sockaddr *) &(p_chat->other), (socklen_t *) &(p_chat->len));
+   
+    if (p_chat->is_leader) {
+      leader_receive_handler(p_chat, (string) buff);
+    } else {
+      client_receive_handler(p_chat, (string) buff);
+    }
+  }
+
+  pthread_exit(NULL);
+}
+
 void *recv_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
 
@@ -303,13 +339,16 @@ void *recv_msgs(void *threadarg) {
 void *send_msgs(void *threadarg) {
   dchat *p_chat = (dchat *) threadarg;
 
+  
+
   for(;;) {
-    usleep(100);
+    if(p_chat->input_msgs.empty()){ 
+      continue;
+    }         
+    string line = p_chat->input_msgs.front();
+    p_chat->input_msgs.pop();
+
     if (p_chat->is_leader) {
-      string line;
-      if (!getline(cin, line)) {
-        error("You just exited the chat!\n");
-      }
       line = p_chat->my_name + ":\t" + line;
       string msg = "normal#$" 
                   + to_string(p_chat->current_stamp)+ "#$" 
@@ -325,10 +364,7 @@ void *send_msgs(void *threadarg) {
       cout<<line<<endl;
 
     } else { // non-leader member
-      string line;
-      if (!getline(cin, line)) {
-        error("You just exited the chat!\n");
-      }
+  
       line = p_chat->my_name + ":\t" + line;
 
       string msg = "normal#$" 
@@ -363,11 +399,11 @@ void *send_heart_beat(void *threadarg) {
     if (!p_chat->is_election) {
       if (p_chat->is_leader) {
         string msg = "leader_heartbeat#$" + p_chat->my_addr;
-        broadcast(p_chat, msg);
+        broadcast_heartbeat(p_chat, msg);
       }
       else {
         string msg = "client_heartbeat#$" + p_chat->my_addr;
-        send_handler(msg, p_chat->leader_addr, p_chat);
+        send_heartbeat_handler(msg, p_chat->leader_addr, p_chat);
       }
     }
   }
@@ -419,6 +455,21 @@ void *check_alive(void* threadarg) {
   pthread_exit(NULL);
 }
 
+void *stdin_msgs(void *threadarg){
+  dchat *p_chat = (dchat *) threadarg;  
+
+  for(;;){
+      string line;
+      if (!getline(cin, line)) {
+        error("You just exited the chat!\n");
+      }
+      //cout<<p_chat->input_msgs.empty()<<endl;
+      p_chat->input_msgs.push(line);
+      //cout<<"here"<<p_chat->input_msgs.back()<<endl;
+  }
+
+}
+
 int main(int argc, char *argv[]) {
 	if (argc != 2 && argc != 3)
 	{
@@ -431,17 +482,21 @@ int main(int argc, char *argv[]) {
 	else {
 		p_dchat->join_a_group(string(argv[1]), string(argv[2]));
 	}
-  pthread_t threads[4];
+  pthread_t threads[6];
 
   pthread_create(&threads[0], NULL, recv_msgs, (void *)p_dchat);
   pthread_create(&threads[1], NULL, send_msgs, (void *)p_dchat);
 
   pthread_create(&threads[2], NULL, send_heart_beat, (void *)p_dchat);
   pthread_create(&threads[3], NULL, check_alive, (void *)p_dchat);
+  pthread_create(&threads[4], NULL, recv_heartbeat, (void *)p_dchat);
+  pthread_create(&threads[5], NULL, stdin_msgs, (void *)p_dchat);
   
   pthread_join(threads[0], NULL);
   pthread_join(threads[1], NULL);
   pthread_join(threads[2], NULL);
   pthread_join(threads[3], NULL);
+  pthread_join(threads[4], NULL);
+  pthread_join(threads[5], NULL);
 	return 0;
 }
